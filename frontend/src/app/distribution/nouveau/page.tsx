@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
@@ -21,6 +21,14 @@ import {
 } from "lucide-react";
 import { releasesApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+
+// Fonction de formatage déterministe pour éviter tout problème d'hydratation SSR / Client
+const formatPrice = (val: number | string) => {
+  if (!val) return "0";
+  const num = typeof val === "string" ? parseFloat(val) : val;
+  if (isNaN(num)) return "0";
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+};
 
 export default function NouvelleDistributionPage() {
   const { user } = useAuth();
@@ -132,7 +140,7 @@ export default function NouvelleDistributionPage() {
 
         <div className="text-right">
           <span className="text-slate-400 text-xs block">Tarif Forfaitaire :</span>
-          <strong className="text-xl font-black text-congo-yellow">{priceMap[releaseType].toLocaleString()} FCFA</strong>
+          <strong className="text-xl font-black text-congo-yellow">{formatPrice(priceMap[releaseType])} FCFA</strong>
         </div>
       </div>
 
@@ -410,7 +418,7 @@ export default function NouvelleDistributionPage() {
           <div className="p-4 bg-emerald-950/30 border border-emerald-800/60 rounded-2xl flex justify-between items-center text-xs">
             <div>
               <span className="text-slate-400 block">Total à régler pour la distribution :</span>
-              <strong className="text-xl font-black text-congo-yellow">{priceMap[releaseType].toLocaleString()} FCFA</strong>
+              <strong className="text-xl font-black text-congo-yellow">{formatPrice(priceMap[releaseType])} FCFA</strong>
             </div>
             <div className="text-right text-[11px] text-slate-400">
               Déduit automatiquement de votre <strong>Portefeuille MoMo</strong>
@@ -440,7 +448,7 @@ export default function NouvelleDistributionPage() {
               {isSubmitting ? (
                 <span>Transmission SonoSuite en cours...</span>
               ) : (
-                <span>Valider & Distribuer ({priceMap[releaseType].toLocaleString()} FCFA) 🚀</span>
+                <span>Valider & Distribuer ({formatPrice(priceMap[releaseType])} FCFA) 🚀</span>
               )}
             </button>
           </div>
@@ -474,7 +482,7 @@ export default function NouvelleDistributionPage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Frais Réglés :</span>
-              <strong className="text-congo-yellow">{successData.amount.toLocaleString()} FCFA</strong>
+              <strong className="text-congo-yellow">{formatPrice(successData.amount)} FCFA</strong>
             </div>
           </div>
 
