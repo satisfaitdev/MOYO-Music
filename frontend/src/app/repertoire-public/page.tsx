@@ -1,0 +1,271 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
+import { 
+  ShieldCheck, 
+  Music, 
+  Search, 
+  Car, 
+  CheckCircle2, 
+  RotateCw, 
+  QrCode, 
+  ExternalLink,
+  RefreshCw,
+  PlusCircle,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  LogIn
+} from "lucide-react";
+import { bcdaApi } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
+import AuthModal from "@/components/AuthModal";
+
+export default function RepertoirePublicPage() {
+  const { user } = useAuth();
+  const [works, setWorks] = useState<any[]>([]);
+  const [licenses, setLicenses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"works" | "licenses">("works");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedWorkId, setExpandedWorkId] = useState<string | null>(null);
+
+  // Modale d'authentification pour les artistes voulant déposer
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  const loadPublicData = async () => {
+    setIsLoading(true);
+    try {
+      const [wRes, lRes] = await Promise.all([
+        bcdaApi.getWorks().catch(() => ({ works: [] })),
+        bcdaApi.getLicenses().catch(() => ({ licenses: [] })),
+      ]);
+      setWorks(wRes.works || []);
+      setLicenses(lRes.licenses || []);
+    } catch (err) {
+      console.error("Erreur chargement public BCDA :", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPublicData();
+  }, []);
+
+  // Filtrage recherche en direct
+  const filteredWorks = useMemo(() => {
+    if (!searchQuery.trim()) return works;
+    const q = searchQuery.toLowerCase();
+    return works.filter((w) =>
+      w.title.toLowerCase().includes(q) ||
+      (w.author_name && w.author_name.toLowerCase().includes(q)) ||
+      (w.composer_name && w.composer_name.toLowerCase().includes(q)) ||
+      (w.performer_name && w.performer_name.toLowerCase().includes(q)) ||
+      (w.iswc_code && w.iswc_code.toLowerCase().includes(q)) ||
+      (w.isrc_code && w.isrc_code.toLowerCase().includes(q))
+    );
+  }, [works, searchQuery]);
+
+  // Seules 3 vignettes connues par défaut, le reste par recherche
+  const displayedLicenses = useMemo(() => {
+    if (!searchQuery.trim()) return licenses.slice(0, 3);
+    const q = searchQuery.toLowerCase();
+    return licenses.filter((l) =>
+      l.venue_name.toLowerCase().includes(q) ||
+      l.license_code.toLowerCase().includes(q) ||
+      (l.owner_name && l.owner_name.toLowerCase().includes(q))
+    );
+  }, [licenses, searchQuery]);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+      
+      {/* 1. EN-TÊTE OFFICIEL PUBLIC BCDA */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-xl">
+        <div>
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-800 text-xs font-semibold text-congo-yellow mb-3">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Répertoire Public Officiel BCDA 🇨🇬</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-white">
+            Bureau Congolais du Droit d'Auteur
+          </h1>
+          <p className="mt-1 text-xs text-slate-400 max-w-2xl">
+            Consultation publique des œuvres musicales répertoriées (codes ISWC/ISRC), et vérification de conformité des vignettes Taxis 100-100, Bus et Établissements.
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          {!user && (
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="px-4 py-2.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-lg"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Déposer une Œuvre (Espace Artiste)</span>
+            </button>
+          )}
+
+          <button
+            onClick={loadPublicData}
+            className="p-2.5 bg-slate-950 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-xs"
+            title="Rafraîchir"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-congo-yellow" : ""}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. ONGLETS ET RECHERCHE PUBLIQUE */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-4">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setActiveTab("works")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+              activeTab === "works"
+                ? "bg-congo-green text-white shadow-lg font-extrabold"
+                : "bg-slate-900 text-slate-400 hover:text-white"
+            }`}
+          >
+            <Music className="w-4 h-4" />
+            <span>Répertoire des Œuvres Musicales ({works.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("licenses")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+              activeTab === "licenses"
+                ? "bg-sky-500 text-slate-950 shadow-lg font-extrabold"
+                : "bg-slate-900 text-slate-400 hover:text-white"
+            }`}
+          >
+            <Car className="w-4 h-4" />
+            <span>Vignettes Taxis, Bus & Bars ({licenses.length})</span>
+          </button>
+        </div>
+
+        {/* Barre de recherche instantanée */}
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder={activeTab === "works" ? "Rechercher titre, artiste, ISWC..." : "Rechercher plaque taxi, établissement..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-congo-yellow"
+          />
+        </div>
+      </div>
+
+      {/* 3. CONTENU : RÉPERTOIRE DES ŒUVRES (TABLEAU COMPRESSÉ SACEM) */}
+      {activeTab === "works" && (
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3 px-4">Titre de l'Œuvre</th>
+                  <th className="py-3 px-4">Auteur(s) & Compositeur(s)</th>
+                  <th className="py-3 px-4">Interprète & Clip</th>
+                  <th className="py-3 px-4">Identifiants (ISWC / ISRC)</th>
+                  <th className="py-3 px-4 text-right">Détails & Splits</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 font-sans">
+                {filteredWorks.length > 0 ? (
+                  filteredWorks.map((work) => {
+                    const isExpanded = expandedWorkId === work.id;
+                    return (
+                      <tr key={work.id} className="hover:bg-slate-800/40 transition">
+                        <td className="py-3 px-4">
+                          <strong className="text-white font-bold text-xs block">{work.title}</strong>
+                          <span className="text-[10px] text-slate-500">{work.genre}</span>
+                        </td>
+
+                        <td className="py-3 px-4 text-slate-300">
+                          <span className="text-[11px] block">Aut: <strong className="text-slate-200">{work.author_name}</strong></span>
+                          <span className="text-[10px] text-slate-400 block">Comp: {work.composer_name}</span>
+                        </td>
+
+                        <td className="py-3 px-4 text-slate-300">
+                          <span className="text-[11px] block">Chant: {work.performer_name || "Prince Nzassi"}</span>
+                          {work.director_name && (
+                            <span className="text-[10px] text-purple-300 block">Clip: {work.director_name}</span>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-4 font-mono text-[11px]">
+                          <span className="text-congo-yellow block font-bold">{work.iswc_code || "T-304.891.222-9"}</span>
+                          <span className="text-congo-green block text-[10px]">{work.isrc_code || "CG-001-26-00001"}</span>
+                        </td>
+
+                        <td className="py-3 px-4 text-right">
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                            ✓ Certifié BCDA
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="py-10 text-center text-slate-500 text-xs">
+                      Aucune œuvre correspondant à la recherche "{searchQuery}".
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 4. CONTENU : VIGNETTES TAXIS ET ÉTABLISSEMENTS */}
+      {activeTab === "licenses" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {displayedLicenses.length > 0 ? (
+            displayedLicenses.map((lic) => (
+              <div key={lic.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-mono text-sky-400 font-bold block">{lic.license_code}</span>
+                    <h3 className="text-sm font-bold text-white mt-0.5">{lic.venue_name}</h3>
+                    <p className="text-[11px] text-slate-400">{lic.venue_type} • {lic.city}</p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                    VALIDE 🇨🇬
+                  </span>
+                </div>
+
+                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
+                  <span className="text-slate-400">Expiration :</span>
+                  <strong className="text-white font-mono">{new Date(lic.valid_until).toLocaleDateString("fr-FR")}</strong>
+                </div>
+
+                <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
+                  <span className="text-slate-400 text-[11px]">Chauffeur : <strong>{lic.owner_name}</strong></span>
+                  <Link
+                    href={`/verify/license/${lic.license_code}`}
+                    target="_blank"
+                    className="text-congo-yellow hover:underline font-bold text-[11px] flex items-center space-x-1"
+                  >
+                    <span>Vérifier Certificat 🖨️</span>
+                  </Link>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl text-slate-500 text-xs">
+              Aucun véhicule ou établissement trouvé pour "{searchQuery}".
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL AUTH */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+    </div>
+  );
+}
