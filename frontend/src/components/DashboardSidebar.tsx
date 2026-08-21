@@ -178,6 +178,17 @@ export default function DashboardSidebar() {
                   <Radio className="w-4 h-4 flex-shrink-0 text-sky-400" />
                   {!isCollapsed && <span>Mes Passages Radios/TV</span>}
                 </Link>
+
+                <Link
+                  href="/services-360"
+                  className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                    pathname === "/services-360" ? "bg-purple-950 text-purple-300 border border-purple-800/60 font-bold" : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  } ${isCollapsed ? "justify-center px-2" : ""}`}
+                  title="Services & Packs 360° (Clips 4K, Mastering, TikTok Promo, Presse)"
+                >
+                  <Sparkles className="w-4 h-4 flex-shrink-0 text-congo-yellow" />
+                  {!isCollapsed && <span>Services 360° Artiste</span>}
+                </Link>
               </div>
             )}
           </div>

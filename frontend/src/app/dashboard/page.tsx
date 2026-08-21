@@ -177,32 +177,49 @@ export default function DashboardPage() {
           </div>
 
           {/* Raccourcis d'action rapide vers les sous-pages dédiées */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link
               href="/distribution/nouveau"
-              className="p-5 bg-gradient-to-br from-slate-900 to-emerald-950/40 border border-emerald-800/60 rounded-3xl shadow-xl hover:border-emerald-500 transition group"
+              className="p-5 bg-gradient-to-br from-slate-900 to-emerald-950/40 border border-emerald-800/60 rounded-3xl shadow-xl hover:border-emerald-500 transition group flex flex-col justify-between"
             >
-              <Music className="w-8 h-8 text-congo-green mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Distribuer une Nouvelle Chanson</h3>
-              <p className="text-xs text-slate-400 mt-1">Envoyez votre titre sur Spotify, Apple Music, TikTok, Boomplay et YouTube.</p>
+              <div>
+                <Music className="w-8 h-8 text-congo-green mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-base font-bold text-white">Distribuer une Chanson</h3>
+                <p className="text-xs text-slate-400 mt-1">Envoyez votre titre sur Spotify, Apple Music, TikTok, Boomplay et YouTube.</p>
+              </div>
             </Link>
 
             <Link
               href="/bcda/deposer"
-              className="p-5 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group"
+              className="p-5 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group flex flex-col justify-between"
             >
-              <ShieldCheck className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Déposer au BCDA (5 Volets)</h3>
-              <p className="text-xs text-slate-400 mt-1">Enregistrez vos paroles, mélodie, master et clip vidéo pour sécuriser vos droits.</p>
+              <div>
+                <ShieldCheck className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-base font-bold text-white">Déposer au BCDA</h3>
+                <p className="text-xs text-slate-400 mt-1">Enregistrez vos paroles, mélodie, master et clip pour vos redevances.</p>
+              </div>
             </Link>
 
             <Link
               href="/monitoring"
-              className="p-5 bg-gradient-to-br from-slate-900 to-sky-950/40 border border-sky-800/60 rounded-3xl shadow-xl hover:border-sky-400 transition group"
+              className="p-5 bg-gradient-to-br from-slate-900 to-sky-950/40 border border-sky-800/60 rounded-3xl shadow-xl hover:border-sky-400 transition group flex flex-col justify-between"
             >
-              <Radio className="w-8 h-8 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Écouter le Direct Radios/TV</h3>
-              <p className="text-xs text-slate-400 mt-1">Regardez les flux en direct et voyez les détections IA de vos titres en temps réel.</p>
+              <div>
+                <Radio className="w-8 h-8 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-base font-bold text-white">Direct Radios/TV</h3>
+                <p className="text-xs text-slate-400 mt-1">Surveillez vos détections IA sur Télé Congo, DRTV et Top Congo FM.</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/services-360"
+              className="p-5 bg-gradient-to-br from-slate-900 to-purple-950/40 border border-purple-800/60 rounded-3xl shadow-xl hover:border-purple-400 transition group flex flex-col justify-between"
+            >
+              <div>
+                <Sparkles className="w-8 h-8 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h3 className="text-base font-bold text-white">Services & Packs 360°</h3>
+                <p className="text-xs text-slate-400 mt-1">Mastering, tournage de clip 4K, promo TikTok Congo et relations presse.</p>
+              </div>
             </Link>
           </div>
         </div>
