@@ -19,18 +19,16 @@ export default function RootLayout({
   return (
     <html lang="fr" className="dark">
       <body className="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
-        <ThemeProvider>
-          <AuthProvider>
-            <Navbar />
-            <div className="flex flex-1">
-              <DashboardSidebar />
-              <main className="flex-1 w-full min-w-0">
-                {children}
-              </main>
-            </div>
-            <Footer />
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <Navbar />
+          <div className="flex flex-1">
+            <DashboardSidebar />
+            <main className="flex-1 w-full min-w-0">
+              {children}
+            </main>
+          </div>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );
