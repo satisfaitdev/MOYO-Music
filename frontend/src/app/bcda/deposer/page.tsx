@@ -250,25 +250,17 @@ export default function DeposerOeuvrePage() {
       const director = collaborators.find(c => c.role === "clip_director");
 
       const res = await bcdaApi.registerWork({
+        work_title: workTitle,
         title: workTitle,
         genre: workGenre,
         creation_year: parseInt(creationYear) || 2026,
         audio_fingerprint_file: "https://example.com/audio/master.wav",
-        author_name: author?.name || collaborators[0]?.name || "Non spécifié",
-        author_phone: author?.phone || "+242068001122",
-        author_split: author?.splitPercentage || 50,
-        composer_name: composer?.name || collaborators[1]?.name || "DJ Brazza Beat",
-        composer_phone: composer?.phone || "+242065112233",
-        composer_split: composer?.splitPercentage || 50,
-        performer_name: performer?.name || user?.artist_name || "Prince Nzassi",
-        performer_phone: performer?.phone || "+242068001122",
-        performer_split: performer?.splitPercentage || 0,
-        producer_name: producer?.name || "Brazza Sound",
-        producer_phone: producer?.phone || "+242054455667",
-        producer_split: producer?.splitPercentage || 0,
-        clip_director_name: director?.name || "Steven Awuku",
-        clip_director_phone: director?.phone || "+242069900112",
-        clip_director_split: director?.splitPercentage || 0,
+        collaborators: collaborators,
+        authors: collaborators.filter(c => c.role === 'author').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
+        composers: collaborators.filter(c => c.role === 'composer' || c.role === 'beatmaker').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
+        performers: collaborators.filter(c => c.role === 'performer').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
+        producers: collaborators.filter(c => c.role === 'producer').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
+        music_video_directors: collaborators.filter(c => c.role === 'clip_director').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage }))
       });
 
       setRegisteredResult(res.work || {

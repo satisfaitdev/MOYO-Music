@@ -70,10 +70,38 @@ router.get('/works', async (req: Request, res: Response) => {
 // DÉCLARATION D'UNE NOUVELLE ŒUVRE (AUTHENTIFICATION ARTISTE / ADMIN REQUISE)
 router.post('/works/register', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const { work_title, genre, isrc_code, authors, composers, performers, producers, music_video_directors } = req.body;
+    const { 
+      work_title, 
+      title, 
+      genre, 
+      isrc_code, 
+      authors, 
+      composers, 
+      performers, 
+      producers, 
+      music_video_directors,
+      collaborators
+    } = req.body;
 
-    if (!work_title) {
+    const finalTitle = (work_title || title || '').trim();
+
+    if (!finalTitle) {
       return res.status(400).json({ error: 'Le titre de l\'œuvre est obligatoire.' });
+    }
+
+    // Extraction des collaborateurs si passés sous forme de liste globale
+    let finalAuthors = authors || [];
+    let finalComposers = composers || [];
+    let finalPerformers = performers || [];
+    let finalProducers = producers || [];
+    let finalDirectors = music_video_directors || [];
+
+    if (Array.isArray(collaborators) && collaborators.length > 0) {
+      finalAuthors = collaborators.filter((c: any) => c.role === 'author').map((c: any) => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage || c.split_percentage || 0 }));
+      finalComposers = collaborators.filter((c: any) => c.role === 'composer' || c.role === 'beatmaker').map((c: any) => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage || c.split_percentage || 0 }));
+      finalPerformers = collaborators.filter((c: any) => c.role === 'performer').map((c: any) => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage || c.split_percentage || 0 }));
+      finalProducers = collaborators.filter((c: any) => c.role === 'producer').map((c: any) => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage || c.split_percentage || 0 }));
+      finalDirectors = collaborators.filter((c: any) => c.role === 'clip_director').map((c: any) => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage || c.split_percentage || 0 }));
     }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
@@ -87,20 +115,20 @@ router.post('/works/register', authenticateToken, async (req: AuthRequest, res: 
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'CERTIFIED_BCDA')
       RETURNING *
     `, [
-      work_title,
+      finalTitle,
       genre || 'Rumba Congolaise',
       isrc_code || `CG-B01-26-0${randomNum}`,
       generatedIswc,
       regNumber,
-      JSON.stringify(authors || []),
-      JSON.stringify(composers || []),
-      JSON.stringify(performers || []),
-      JSON.stringify(producers || []),
-      JSON.stringify(music_video_directors || [])
+      JSON.stringify(finalAuthors),
+      JSON.stringify(finalComposers),
+      JSON.stringify(finalPerformers),
+      JSON.stringify(finalProducers),
+      JSON.stringify(finalDirectors)
     ]);
 
     return res.status(201).json({
-      message: `Œuvre et Clip "${work_title}" enregistrés avec succès au BCDA !`,
+      message: `Œuvre et Clip "${finalTitle}" enregistrés avec succès au BCDA !`,
       registration_number: regNumber,
       iswc_code: generatedIswc,
       work: result.rows[0]
