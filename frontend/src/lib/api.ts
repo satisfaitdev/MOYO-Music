@@ -124,6 +124,7 @@ export const monitoringApi = {
 export const bcdaApi = {
   getStats: () => apiRequest('/bcda/stats', { method: 'GET' }),
   getWorks: (search?: string) => apiRequest(`/bcda/works${search ? `?search=${encodeURIComponent(search)}` : ''}`, { method: 'GET' }),
+  inspectAudio: (data: any) => apiRequest('/bcda/works/inspect-audio', { method: 'POST', body: JSON.stringify(data) }),
   registerWork: (data: any) => apiRequest('/bcda/works/register', { method: 'POST', body: JSON.stringify(data) }),
   getLicenses: (search?: string) => apiRequest(`/bcda/licenses${search ? `?search=${encodeURIComponent(search)}` : ''}`, { method: 'GET' }),
   payLicense: (data: any) => apiRequest('/bcda/licenses/pay', { method: 'POST', body: JSON.stringify(data) }),

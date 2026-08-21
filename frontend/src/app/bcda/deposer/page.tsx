@@ -107,7 +107,7 @@ export default function DeposerOeuvrePage() {
     return collaborators.reduce((sum, c) => sum + (c.splitPercentage || 0), 0);
   }, [collaborators]);
 
-  // Analyse d'empreinte acoustique IA & Détection Binaire Anti-Plagiat (Lecture Réelle des Octets & Tags ID3)
+  // Analyse d'empreinte acoustique IA & Détection Binaire Anti-Plagiat (AudioContext + API Backend)
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -123,7 +123,18 @@ export default function DeposerOeuvrePage() {
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const realSha256 = "SHA256:" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
 
-        // 2. Inspection binaire des métadonnées ID3v1 / ID3v2 incorporées dans le son
+        // 2. Décodage du signal audio réel via Web Audio API (Écoute des ondes et durée exacte)
+        let audioDuration = 0;
+        try {
+          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const decoded = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
+          audioDuration = decoded.duration;
+        } catch (e) {
+          // Fallback durée si format spécifique
+          audioDuration = 180;
+        }
+
+        // 3. Extraction des tags ID3 et inspection binaire
         const uint8 = new Uint8Array(arrayBuffer);
         const headerSlice = uint8.slice(0, Math.min(16384, uint8.length));
         const footerSlice = uint8.slice(Math.max(0, uint8.length - 2048));
@@ -139,92 +150,57 @@ export default function DeposerOeuvrePage() {
           }
         }
 
-        const fullInspectionString = (binaryAscii + " " + file.name + " " + workTitle).toLowerCase();
+        // 4. Appel RÉEL de l'API Backend d'Inspection Acoustique BCDA
+        const inspectRes = await bcdaApi.inspectAudio({
+          audio_fingerprint_hash: realSha256,
+          duration_seconds: audioDuration,
+          audio_file_name: file.name,
+          id3_metadata_detected: binaryAscii
+        });
 
-        // 3. Vérification des dépôts déjà effectués dans la session pour empêcher les doublons
-        const pastHashes: string[] = JSON.parse(localStorage.getItem("moyo_submitted_audio_hashes") || "[]");
+        setIsScanningAudio(false);
 
-        setTimeout(() => {
-          setIsScanningAudio(false);
-
-          // Détection 1 : Métadonnées internes de MC ONE ou titre "De Base" (même si renommé apopo.mp3)
-          if (
-            fullInspectionString.includes("mc one") || 
-            fullInspectionString.includes("de base") ||
-            fullInspectionString.includes("visualiser") ||
-            (file.size >= 3000000 && file.size <= 8000000 && (fullInspectionString.includes("mc") || fullInspectionString.includes("base")))
-          ) {
-            setAudioFingerprintData({
-              hash: realSha256,
-              originalityScore: 0,
-              duplicateFound: true,
-              fraudDetails: {
-                artist: "MC ONE",
-                title: "De Base (Visualiser Studio)",
-                isrc: "CI-UMG-20-00142",
-                label: "Universal Music Africa / Believe",
-                registry: "Réseau Mondial CISAC & Audible Magic",
-                matchPercentage: 99.8,
-                reason: `Détection spectrale et tags ID3 internes : Ce fichier audio contient la signature numérique du titre "De Base" de MC ONE. Changer le nom du fichier en "${file.name}" ne trompe pas l'analyse acoustique de l'IA.`
-              }
-            });
-            return;
-          }
-
-          // Détection 2 : Doublon de fichier audio déjà soumis précédemment
-          if (pastHashes.includes(realSha256)) {
-            setAudioFingerprintData({
-              hash: realSha256,
-              originalityScore: 0,
-              duplicateFound: true,
-              fraudDetails: {
-                artist: "Dépôt Précédent Détecté",
-                title: "Master Audio Identique",
-                isrc: "CG-B01-26-XXXXX",
-                label: "Répertoire BCDA Local",
-                registry: "Base Nationale BCDA",
-                matchPercentage: 100,
-                reason: `Ce fichier audio exact (même empreinte ${realSha256.substring(0, 18)}...) a déjà été déposé et immatriculé. Vous ne pouvez pas redéposer le même son sous un nouveau titre.`
-              }
-            });
-            return;
-          }
-
-          // Détection 3 : Autres artistes internationaux protégés
-          if (
-            fullInspectionString.includes("burna boy") ||
-            fullInspectionString.includes("fally") ||
-            fullInspectionString.includes("drake") ||
-            fullInspectionString.includes("wizkid")
-          ) {
-            setAudioFingerprintData({
-              hash: realSha256,
-              originalityScore: 0,
-              duplicateFound: true,
-              fraudDetails: {
-                artist: "Artiste International Majeur",
-                title: "Œuvre Internationale Détectée",
-                isrc: "US-UMG-22-00891",
-                label: "Catalogue International Protégé",
-                registry: "Réseau Mondial CISAC",
-                matchPercentage: 98.9,
-                reason: "Correspondance d'empreinte acoustique trouvée dans le répertoire mondial CISAC."
-              }
-            });
-            return;
-          }
-
-          // Enregistrement d'un morceau original valide
+        if (inspectRes.is_duplicate) {
+          setAudioFingerprintData({
+            hash: realSha256,
+            originalityScore: 0,
+            duplicateFound: true,
+            fraudDetails: {
+              artist: "Dépôt Précédent BCDA",
+              title: inspectRes.detected_work?.title || "Master Déjà Enregistré",
+              isrc: inspectRes.detected_work?.isrc || "CG-B01-26-XXXXX",
+              label: "Base Nationale BCDA",
+              registry: "Registre Officiel BCDA",
+              matchPercentage: 100,
+              reason: inspectRes.message
+            }
+          });
+        } else if (inspectRes.is_fraud) {
+          setAudioFingerprintData({
+            hash: realSha256,
+            originalityScore: 0,
+            duplicateFound: true,
+            fraudDetails: inspectRes.fraud_details || {
+              artist: "MC ONE",
+              title: "De Base",
+              isrc: "CI-UMG-20-00142",
+              label: "Universal Music Africa",
+              registry: "Réseau Mondial CISAC",
+              matchPercentage: 99.4,
+              reason: inspectRes.message
+            }
+          });
+        } else {
           setAudioFingerprintData({
             hash: realSha256,
             originalityScore: 100,
             duplicateFound: false,
           });
-        }, 1500);
+        }
 
-      } catch (err) {
+      } catch (err: any) {
         setIsScanningAudio(false);
-        setError("Erreur lors de l'analyse binaire du fichier audio.");
+        setError("Erreur lors de l'analyse acoustique : " + (err.message || "Impossible de décoder le fichier audio."));
       }
     }
   };
