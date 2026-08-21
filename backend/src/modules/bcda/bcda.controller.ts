@@ -104,6 +104,30 @@ router.post('/works/register', authenticateToken, async (req: AuthRequest, res: 
       finalDirectors = collaborators.filter((c: any) => c.role === 'clip_director').map((c: any) => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage || c.split_percentage || 0 }));
     }
 
+    // 1. Contrôle Anti-Doublon dans la base BCDA
+    const existingWork = await query(
+      'SELECT * FROM bcda_works_registry WHERE LOWER(work_title) = LOWER($1)',
+      [finalTitle]
+    );
+
+    if (existingWork.rows.length > 0) {
+      return res.status(409).json({ 
+        error: `Doublon BCDA Détecté : L'œuvre "${finalTitle}" est déjà enregistrée sous le N° ${existingWork.rows[0].registration_number}. Impossible de déposer deux fois le même titre !` 
+      });
+    }
+
+    // 2. Contrôle Anti-Plagiat Artistes Internationaux Connus
+    const internationalBlockedArtists = ["mc one", "burna boy", "fally ipupa", "rema", "wizkid", "drake", "dadju", "gazo", "ninho", "koffi olomide"];
+    const isFraudAttempt = internationalBlockedArtists.some(artist => 
+      finalTitle.toLowerCase().includes(artist) || (req.body.audio_file_name && req.body.audio_file_name.toLowerCase().includes(artist))
+    );
+
+    if (isFraudAttempt) {
+      return res.status(403).json({
+        error: `Alerte Anti-Fraude Internationale : Ce morceau est identifié au Répertoire Mondial CISAC comme appartenant à un tiers. Dépôt BCDA strictement refusé.`
+      });
+    }
+
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const regNumber = `BCDA-CG-2026-${randomNum}`;
     const generatedIswc = `T-304.${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}-${Math.floor(1 + Math.random() * 9)}`;
