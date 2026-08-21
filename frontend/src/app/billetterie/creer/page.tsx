@@ -245,10 +245,10 @@ export default function CreerEvenementPage() {
         ) : (
           <form onSubmit={handleSubmit} className="space-y-10">
             
-            {/* 1. INFORMATIONS DU CONCERT */}
+            {/* 1. DÉTAILS DU CONCERT */}
             <div className="space-y-4">
               <h2 className="text-base font-bold text-white flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full bg-congo-red text-white text-xs flex items-center justify-center font-bold">1</span>
+                <span className="w-6 h-6 rounded-full bg-congo-green text-white text-xs flex items-center justify-center font-bold">1</span>
                 <span>Détails & Type d'Événement</span>
               </h2>
 
@@ -263,7 +263,7 @@ export default function CreerEvenementPage() {
                     placeholder="Ex: Rumba Na Étoiles - Grand Live Bacongo"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-red"
+                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-green"
                   />
                 </div>
 
@@ -274,7 +274,7 @@ export default function CreerEvenementPage() {
                   <select
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-red"
+                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-green"
                   >
                     <option value="Concert Live Rumba">Concert Live Rumba Congolaise</option>
                     <option value="Showcase VIP / Dîner-Spectacle">Showcase VIP / Dîner-Spectacle</option>
@@ -290,7 +290,7 @@ export default function CreerEvenementPage() {
             {/* 2. CHOIX DE LA SALLE RÉELLE DU CONGO */}
             <div className="space-y-4">
               <h2 className="text-base font-bold text-white flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full bg-congo-yellow text-slate-950 text-xs flex items-center justify-center font-bold">2</span>
+                <span className="w-6 h-6 rounded-full bg-congo-green text-white text-xs flex items-center justify-center font-bold">2</span>
                 <span>Sélection de la Salle & Ville (Répertoire Officiel Congo 🇨🇬)</span>
               </h2>
 
@@ -301,7 +301,7 @@ export default function CreerEvenementPage() {
                 <select
                   value={selectedVenueId}
                   onChange={(e) => handleVenueChange(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-yellow font-semibold"
+                  className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-green font-semibold"
                 >
                   <optgroup label="📍 Brazzaville">
                     {CONGO_VENUES_LIST.filter(v => v.city.includes("Brazzaville")).map(v => (
@@ -328,7 +328,7 @@ export default function CreerEvenementPage() {
                     required
                     value={eventDate}
                     onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-yellow"
+                    className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-congo-green"
                   />
                 </div>
 
@@ -358,7 +358,7 @@ export default function CreerEvenementPage() {
             {/* 3. GESTION DES INVITÉS & LINE-UP */}
             <div className="space-y-4 border-t border-slate-800 pt-8">
               <h2 className="text-base font-bold text-white flex items-center space-x-2">
-                <span className="w-6 h-6 rounded-full bg-sky-400 text-slate-950 text-xs flex items-center justify-center font-bold">3</span>
+                <span className="w-6 h-6 rounded-full bg-congo-green text-white text-xs flex items-center justify-center font-bold">3</span>
                 <span>Artistes Invités, Guests VIP & Influenceurs Promotion</span>
               </h2>
 
@@ -368,10 +368,10 @@ export default function CreerEvenementPage() {
                     <div key={i} className="flex items-center justify-between p-2.5 bg-slate-900 rounded-xl text-xs border border-slate-800">
                       <div>
                         <strong className="text-white">{guest.name}</strong>
-                        <span className="text-[10px] text-sky-400 ml-2">({guest.role})</span>
+                        <span className="text-[10px] text-congo-green ml-2">({guest.role})</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded text-[10px]">{guest.pass}</span>
+                        <span className="px-2 py-0.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded text-[10px]">{guest.pass}</span>
                         <button type="button" onClick={() => removeGuest(i)} className="text-slate-500 hover:text-red-400">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -401,7 +401,7 @@ export default function CreerEvenementPage() {
                   <button
                     type="button"
                     onClick={addGuest}
-                    className="py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center space-x-1"
+                    className="py-2 bg-congo-green hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center justify-center space-x-1 transition shadow-md"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>Ajouter</span>

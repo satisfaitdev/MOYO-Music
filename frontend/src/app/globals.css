@@ -22,7 +22,7 @@ body {
 }
 
 /* ========================================================================= */
-/* 🇨🇬 THÈME CLAIR INSTITUTIONNEL CONGO DE HAUTE QUALITÉ */
+/* 🇨🇬 THÈME CLAIR INSTITUTIONNEL CONGO - HARMONIE DES COULEURS PARFAITE */
 /* ========================================================================= */
 
 html.light {
@@ -36,19 +36,22 @@ html.light body {
   background: #f8fafc !important;
 }
 
-/* 1. Surfaces & Cartes Blanches Lumineuses avec Ombre Institutionnelle */
-html.light .bg-slate-950 {
-  background-color: #ffffff !important;
-}
-
+/* 1. Surfaces & Cartes Blanches Lumineuses (Plus de blocs noirs ou gris) */
+html.light .bg-slate-950,
 html.light .bg-slate-900,
 html.light .bg-slate-900\/50,
 html.light .bg-slate-900\/60,
 html.light .bg-slate-900\/80,
 html.light .bg-slate-900\/90,
-html.light .bg-slate-900\/95 {
+html.light .bg-slate-900\/95,
+html.light .bg-slate-800,
+html.light .bg-slate-800\/20,
+html.light .bg-slate-800\/30,
+html.light .bg-slate-800\/40,
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/80 {
   background-color: #ffffff !important;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06) !important;
 }
 
 /* 2. Remplacer les dégradés sombres par des dégradés clairs pastel élégants */
@@ -76,14 +79,15 @@ html.light .border-slate-800,
 html.light .border-slate-700,
 html.light .border-slate-800\/80,
 html.light .border-slate-800\/60,
-html.light .border-slate-800\/40 {
+html.light .border-slate-800\/40,
+html.light .border-slate-800\/30 {
   border-color: #e2e8f0 !important;
 }
 
 html.light .divide-slate-800,
 html.light .divide-slate-800\/80,
 html.light .divide-slate-800\/60 {
-  border-color: #e2e8f0 !important;
+  border-color: #f1f5f9 !important;
 }
 
 /* 4. Typographie Haute Lisibilité (Noir d'Encre & Gris Anthracite) */
@@ -100,7 +104,7 @@ html.light .text-slate-300 {
 
 html.light .text-slate-400,
 html.light .text-slate-500 {
-  color: #475569 !important;
+  color: #64748b !important;
 }
 
 /* 5. Formulaires, Champs et Sélecteurs Clairs */
@@ -116,18 +120,19 @@ html.light textarea {
 html.light input:focus,
 html.light select:focus,
 html.light textarea:focus {
-  border-color: #009543 !important;
-  outline: 2px solid rgba(0, 149, 67, 0.2) !important;
+  border-color: #059669 !important;
+  outline: 2px solid rgba(5, 150, 105, 0.2) !important;
 }
 
 html.light input::placeholder {
   color: #94a3b8 !important;
 }
 
-/* 6. Badges & Liens Actifs aux Couleurs Officielles du Congo */
+/* 6. Badges & Pastilles aux Couleurs Harmonieuses */
 html.light .bg-emerald-950,
 html.light .bg-emerald-950\/60,
-html.light .bg-emerald-950\/80 {
+html.light .bg-emerald-950\/80,
+html.light .bg-emerald-950\/40 {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
   color: #047857 !important;
@@ -141,7 +146,8 @@ html.light .text-congo-green {
 html.light .bg-amber-950,
 html.light .bg-amber-950\/60,
 html.light .bg-amber-950\/80,
-html.light .bg-yellow-950\/30 {
+html.light .bg-yellow-950\/30,
+html.light .bg-amber-950\/40 {
   background-color: #fffbeb !important;
   border-color: #fde68a !important;
   color: #b45309 !important;
@@ -153,7 +159,8 @@ html.light .text-congo-yellow {
 
 html.light .bg-red-950,
 html.light .bg-red-950\/60,
-html.light .bg-red-950\/80 {
+html.light .bg-red-950\/80,
+html.light .bg-red-950\/40 {
   background-color: #fef2f2 !important;
   border-color: #fecaca !important;
   color: #b91c1c !important;
@@ -165,7 +172,8 @@ html.light .text-red-400 {
 }
 
 html.light .bg-sky-950,
-html.light .bg-sky-950\/60 {
+html.light .bg-sky-950\/60,
+html.light .bg-sky-950\/40 {
   background-color: #f0f9ff !important;
   border-color: #bae6fd !important;
   color: #0369a1 !important;
@@ -175,10 +183,20 @@ html.light .text-sky-400 {
   font-weight: 700 !important;
 }
 
-/* 7. Hover et Actions de la Barre Latérale en Mode Clair */
+html.light .bg-purple-950,
+html.light .bg-purple-950\/60,
+html.light .bg-purple-950\/40 {
+  background-color: #faf5ff !important;
+  border-color: #e9d5ff !important;
+  color: #7e22ce !important;
+}
+
+/* 7. Hover et Actions de Tableau / Barre Latérale en Mode Clair */
 html.light .hover\:bg-slate-900:hover,
-html.light .hover\:bg-slate-800:hover {
-  background-color: #f1f5f9 !important;
+html.light .hover\:bg-slate-800:hover,
+html.light .hover\:bg-slate-800\/40:hover,
+html.light .hover\:bg-slate-800\/30:hover {
+  background-color: #f8fafc !important;
   color: #0f172a !important;
 }
 

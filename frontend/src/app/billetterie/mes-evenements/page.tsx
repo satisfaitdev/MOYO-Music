@@ -86,7 +86,7 @@ export default function MesEvenementsPage() {
         <div className="flex items-center space-x-3">
           <Link
             href="/billetterie/creer"
-            className="px-5 py-3.5 bg-congo-red hover:bg-red-600 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-xl transition flex-shrink-0"
+            className="px-5 py-3.5 bg-congo-green hover:bg-emerald-600 text-white font-bold rounded-2xl text-xs flex items-center space-x-2 shadow-xl transition flex-shrink-0"
           >
             <PlusCircle className="w-4 h-4" />
             <span>+ Créer un Nouveau Spectacle</span>
@@ -126,7 +126,7 @@ export default function MesEvenementsPage() {
       {/* 3. LISTE DÉTAILLÉE DE MES ÉVÉNEMENTS */}
       <div className="space-y-6">
         <h2 className="text-base font-bold text-white flex items-center space-x-2">
-          <Ticket className="w-5 h-5 text-congo-red" />
+          <Ticket className="w-5 h-5 text-congo-green" />
           <span>Liste de Mes Événements ({events.length})</span>
         </h2>
 
@@ -164,7 +164,7 @@ export default function MesEvenementsPage() {
                   <div className="flex items-center gap-2">
                     <Link
                       href="/billetterie/scan"
-                      className="px-4 py-2.5 bg-amber-950 text-congo-yellow border border-amber-800/80 hover:border-congo-yellow rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                      className="px-4 py-2.5 bg-amber-950 text-congo-yellow border border-amber-800 hover:border-congo-yellow rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
                     >
                       <ScanLine className="w-4 h-4" />
                       <span>Scanner les Entrées</span>
@@ -172,9 +172,9 @@ export default function MesEvenementsPage() {
 
                     <Link
                       href="/bcda"
-                      className="px-4 py-2.5 bg-purple-950 text-purple-300 border border-purple-800/80 hover:border-purple-500 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
                     >
-                      <ShieldCheck className="w-4 h-4" />
+                      <ShieldCheck className="w-4 h-4 text-congo-yellow" />
                       <span>Tirage Papier BCDA</span>
                     </Link>
                   </div>
