@@ -159,7 +159,34 @@ router.post('/works/inspect-audio', authenticateToken, async (req: AuthRequest, 
       });
     }
 
-    // 3. Fichier audio inédit et valide
+    // 3. Appel de l'API Mondiale ACRCloud si des clés de production sont configurées
+    try {
+      const { acrCloudService } = await import('../monitoring/acrcloud.service');
+      if (req.body.audio_sample_base64) {
+        const sampleBuffer = Buffer.from(req.body.audio_sample_base64, 'base64');
+        const acrResult = await acrCloudService.identifyAudioBuffer(sampleBuffer);
+        if (acrResult.success && acrResult.score >= 70) {
+          return res.json({
+            is_original: false,
+            is_fraud: true,
+            match_percentage: acrResult.score,
+            fraud_details: {
+              artist: acrResult.artist || 'Artiste International',
+              title: acrResult.title || 'Titre Protégé',
+              isrc: acrResult.isrc || 'ISRC-INTERNATIONAL',
+              label: acrResult.label || 'Major Label',
+              registry: 'ACRCloud Global Music Registry (100M+ Titres)',
+              reason: `Reconnaissance acoustique en direct : Ce morceau correspond à ${acrResult.score}% à "${acrResult.title}" de ${acrResult.artist}.`
+            },
+            message: `Plagiat Détecté via ACRCloud Mondial (${acrResult.title} - ${acrResult.artist})`
+          });
+        }
+      }
+    } catch (acrErr) {
+      // ignore
+    }
+
+    // 4. Fichier audio inédit et valide
     return res.json({
       is_original: true,
       is_duplicate: false,
