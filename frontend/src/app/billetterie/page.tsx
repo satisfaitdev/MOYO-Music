@@ -117,7 +117,7 @@ export default function BilletteriePage() {
                     alt={evt.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
-                  <span className="absolute bottom-3 left-3 px-3 py-1 bg-slate-950/80 backdrop-blur-md rounded-full text-[11px] font-semibold text-congo-yellow">
+                  <span className="absolute bottom-3 left-3 px-3 py-1 bg-slate-900/90 border border-congo-yellow/40 backdrop-blur-md rounded-full text-[11px] font-bold text-congo-yellow shadow-md">
                     {parseFloat(evt.ticket_price_fcfa).toLocaleString()} FCFA
                   </span>
                 </div>
@@ -150,7 +150,7 @@ export default function BilletteriePage() {
                       setGeneratedTicket(null);
                       setError("");
                     }}
-                    className="px-4 py-2 bg-congo-red hover:bg-red-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-md"
+                    className="px-4 py-2 bg-congo-green hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
                   >
                     <span>Acheter Billet MoMo</span>
                     <ArrowRight className="w-3.5 h-3.5" />

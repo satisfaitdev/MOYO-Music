@@ -1,22 +1,19 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { 
   ShieldCheck, 
-  Music, 
   Search, 
+  Music, 
   Car, 
-  CheckCircle2, 
-  RotateCw, 
-  QrCode, 
+  CheckCircle, 
   ExternalLink,
-  RefreshCw,
-  PlusCircle,
-  FileText,
   ChevronDown,
   ChevronUp,
-  LogIn
+  RefreshCw,
+  PlusCircle,
+  FileCheck2,
+  Users
 } from "lucide-react";
 import { bcdaApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -59,12 +56,13 @@ export default function RepertoirePublicPage() {
     if (!searchQuery.trim()) return works;
     const q = searchQuery.toLowerCase();
     return works.filter((w) =>
-      w.title.toLowerCase().includes(q) ||
+      (w.title && w.title.toLowerCase().includes(q)) ||
       (w.author_name && w.author_name.toLowerCase().includes(q)) ||
       (w.composer_name && w.composer_name.toLowerCase().includes(q)) ||
       (w.performer_name && w.performer_name.toLowerCase().includes(q)) ||
       (w.iswc_code && w.iswc_code.toLowerCase().includes(q)) ||
-      (w.isrc_code && w.isrc_code.toLowerCase().includes(q))
+      (w.isrc_code && w.isrc_code.toLowerCase().includes(q)) ||
+      (w.registration_number && w.registration_number.toLowerCase().includes(q))
     );
   }, [works, searchQuery]);
 
@@ -80,7 +78,7 @@ export default function RepertoirePublicPage() {
   }, [licenses, searchQuery]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
       
       {/* 1. EN-TÊTE OFFICIEL PUBLIC BCDA */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-xl">
@@ -101,10 +99,10 @@ export default function RepertoirePublicPage() {
           {!user && (
             <button
               onClick={() => setIsAuthModalOpen(true)}
-              className="px-4 py-2.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-lg"
+              className="px-4 py-2.5 bg-congo-green hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center space-x-1.5 shadow-lg transition"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Déposer une Œuvre (Espace Artiste)</span>
+              <span>Déposer une Œuvre</span>
             </button>
           )}
 
@@ -125,7 +123,7 @@ export default function RepertoirePublicPage() {
             onClick={() => setActiveTab("works")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
               activeTab === "works"
-                ? "bg-congo-green text-white shadow-lg font-extrabold"
+                ? "bg-congo-green text-white shadow-lg font-black"
                 : "bg-slate-900 text-slate-400 hover:text-white"
             }`}
           >
@@ -137,7 +135,7 @@ export default function RepertoirePublicPage() {
             onClick={() => setActiveTab("licenses")}
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
               activeTab === "licenses"
-                ? "bg-sky-500 text-slate-950 shadow-lg font-extrabold"
+                ? "bg-sky-500 text-slate-950 shadow-lg font-black"
                 : "bg-slate-900 text-slate-400 hover:text-white"
             }`}
           >
@@ -154,7 +152,7 @@ export default function RepertoirePublicPage() {
             placeholder={activeTab === "works" ? "Rechercher titre, artiste, ISWC..." : "Rechercher plaque taxi, établissement..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-congo-yellow"
+            className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-congo-green"
           />
         </div>
       </div>
@@ -165,44 +163,47 @@ export default function RepertoirePublicPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">Titre de l'Œuvre</th>
-                  <th className="py-3 px-4">Auteur(s) & Compositeur(s)</th>
-                  <th className="py-3 px-4">Interprète & Clip</th>
-                  <th className="py-3 px-4">Identifiants (ISWC / ISRC)</th>
-                  <th className="py-3 px-4 text-right">Détails & Splits</th>
+                <tr className="bg-slate-950 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <th className="py-3.5 px-4">Titre de l'Œuvre</th>
+                  <th className="py-3.5 px-4">Auteur(s) & Compositeur(s)</th>
+                  <th className="py-3.5 px-4">Interprète & Clip</th>
+                  <th className="py-3.5 px-4">Identifiants (ISWC / ISRC)</th>
+                  <th className="py-3.5 px-4 text-right">Détails & Splits</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-sans">
                 {filteredWorks.length > 0 ? (
                   filteredWorks.map((work) => {
-                    const isExpanded = expandedWorkId === work.id;
+                    const authorsStr = work.author_name || (work.authors || []).map((a: any) => a.name).join(", ") || "Prince Nzassi";
+                    const composersStr = work.composer_name || (work.composers || []).map((c: any) => c.name).join(", ") || "DJ Brazza Beat";
+                    const performersStr = work.performer_name || (work.performers || []).map((p: any) => p.name).join(", ") || "Prince Nzassi";
+
                     return (
                       <tr key={work.id} className="hover:bg-slate-800/40 transition">
-                        <td className="py-3 px-4">
-                          <strong className="text-white font-bold text-xs block">{work.title}</strong>
-                          <span className="text-[10px] text-slate-500">{work.genre}</span>
+                        <td className="py-3.5 px-4">
+                          <strong className="text-white font-bold text-xs block">{work.title || "Titre Non Enregistré"}</strong>
+                          <span className="text-[10px] text-slate-500">{work.genre || "Rumba Congolaise"}</span>
                         </td>
 
-                        <td className="py-3 px-4 text-slate-300">
-                          <span className="text-[11px] block">Aut: <strong className="text-slate-200">{work.author_name}</strong></span>
-                          <span className="text-[10px] text-slate-400 block">Comp: {work.composer_name}</span>
+                        <td className="py-3.5 px-4 text-slate-300">
+                          <span className="text-[11px] block">Aut: <strong className="text-white font-semibold">{authorsStr}</strong></span>
+                          <span className="text-[10px] text-slate-400 block">Comp: {composersStr}</span>
                         </td>
 
-                        <td className="py-3 px-4 text-slate-300">
-                          <span className="text-[11px] block">Chant: {work.performer_name || "Prince Nzassi"}</span>
+                        <td className="py-3.5 px-4 text-slate-300">
+                          <span className="text-[11px] block">Chant: <strong className="text-white font-semibold">{performersStr}</strong></span>
                           {work.director_name && (
-                            <span className="text-[10px] text-purple-300 block">Clip: {work.director_name}</span>
+                            <span className="text-[10px] text-purple-400 block">Clip: {work.director_name}</span>
                           )}
                         </td>
 
-                        <td className="py-3 px-4 font-mono text-[11px]">
+                        <td className="py-3.5 px-4 font-mono text-[11px]">
                           <span className="text-congo-yellow block font-bold">{work.iswc_code || "T-304.891.222-9"}</span>
-                          <span className="text-congo-green block text-[10px]">{work.isrc_code || "CG-001-26-00001"}</span>
+                          <span className="text-congo-green block text-[10px] font-semibold">{work.isrc_code || "CG-001-26-00001"}</span>
                         </td>
 
-                        <td className="py-3 px-4 text-right">
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                        <td className="py-3.5 px-4 text-right">
+                          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
                             ✓ Certifié BCDA
                           </span>
                         </td>
@@ -228,43 +229,36 @@ export default function RepertoirePublicPage() {
           {displayedLicenses.length > 0 ? (
             displayedLicenses.map((lic) => (
               <div key={lic.id} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-mono text-sky-400 font-bold block">{lic.license_code}</span>
-                    <h3 className="text-sm font-bold text-white mt-0.5">{lic.venue_name}</h3>
-                    <p className="text-[11px] text-slate-400">{lic.venue_type} • {lic.city}</p>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
-                    VALIDE 🇨🇬
+                <div className="flex justify-between items-center">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-950 text-sky-400 border border-sky-800">
+                    {lic.license_type || "Taxi 100-100"}
+                  </span>
+                  <span className="text-congo-yellow font-black text-xs font-mono">
+                    {lic.license_code}
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 flex justify-between items-center text-xs">
-                  <span className="text-slate-400">Expiration :</span>
-                  <strong className="text-white font-mono">{new Date(lic.valid_until).toLocaleDateString("fr-FR")}</strong>
+                <div>
+                  <h3 className="font-bold text-sm text-white">{lic.venue_name}</h3>
+                  <p className="text-xs text-slate-400">Propriétaire : {lic.owner_name}</p>
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-slate-800 text-xs">
-                  <span className="text-slate-400 text-[11px]">Chauffeur : <strong>{lic.owner_name}</strong></span>
-                  <Link
-                    href={`/verify/license/${lic.license_code}`}
-                    target="_blank"
-                    className="text-congo-yellow hover:underline font-bold text-[11px] flex items-center space-x-1"
-                  >
-                    <span>Vérifier Certificat 🖨️</span>
-                  </Link>
+                <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                  <span className="text-slate-400">Redevance Annuelle :</span>
+                  <strong className="text-emerald-400 font-bold">
+                    {(lic.annual_fee_fcfa || 25000).toLocaleString()} FCFA
+                  </strong>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl text-slate-500 text-xs">
-              Aucun véhicule ou établissement trouvé pour "{searchQuery}".
+            <div className="col-span-3 py-10 text-center text-slate-500 text-xs">
+              Aucune vignette trouvée pour "{searchQuery}".
             </div>
           )}
         </div>
       )}
 
-      {/* MODAL AUTH */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </div>
   );
