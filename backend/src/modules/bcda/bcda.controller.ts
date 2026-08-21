@@ -80,6 +80,13 @@ router.post('/works/inspect-audio', authenticateToken, async (req: AuthRequest, 
       id3_metadata_detected
     } = req.body;
 
+    // Assurer que la colonne audio_fingerprint_hash existe dans PostgreSQL
+    try {
+      await query('ALTER TABLE bcda_works_registry ADD COLUMN IF NOT EXISTS audio_fingerprint_hash TEXT');
+    } catch (colErr) {
+      // ignore
+    }
+
     // 1. Vérification si cette empreinte spectrale / hash existe déjà dans la base PostgreSQL BCDA
     let duplicateWork = null;
     if (audio_fingerprint_hash) {
