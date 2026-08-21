@@ -176,10 +176,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Raccourcis d'action rapide */}
+          {/* Raccourcis d'action rapide vers les sous-pages dédiées */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
-              href="/distribution"
+              href="/distribution/nouveau"
               className="p-5 bg-gradient-to-br from-slate-900 to-emerald-950/40 border border-emerald-800/60 rounded-3xl shadow-xl hover:border-emerald-500 transition group"
             >
               <Music className="w-8 h-8 text-congo-green mb-3 group-hover:scale-110 transition-transform" />
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             </Link>
 
             <Link
-              href="/bcda"
+              href="/bcda/deposer"
               className="p-5 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group"
             >
               <ShieldCheck className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />

@@ -22,7 +22,7 @@ body {
 }
 
 /* ========================================================================= */
-/* 🇨🇬 THÈME CLAIR INSTITUTIONNEL - STYLE MINISTÈRES & GOUVERNEMENT DU CONGO */
+/* 🇨🇬 THÈME CLAIR INSTITUTIONNEL CONGO DE HAUTE QUALITÉ */
 /* ========================================================================= */
 
 html.light {
@@ -51,7 +51,27 @@ html.light .bg-slate-900\/95 {
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06) !important;
 }
 
-/* 2. Bordures Nettes et Subtiles */
+/* 2. Remplacer les dégradés sombres par des dégradés clairs pastel élégants */
+html.light .from-slate-900 {
+  --tw-gradient-from: #ffffff !important;
+  --tw-gradient-to: #f8fafc !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+html.light .to-emerald-950\/40 {
+  --tw-gradient-to: #ecfdf5 !important;
+}
+html.light .to-amber-950\/40 {
+  --tw-gradient-to: #fffbeb !important;
+}
+html.light .to-sky-950\/40 {
+  --tw-gradient-to: #f0f9ff !important;
+}
+html.light .to-purple-950\/40 {
+  --tw-gradient-to: #faf5ff !important;
+}
+
+/* 3. Bordures Nettes et Subtiles */
 html.light .border-slate-800,
 html.light .border-slate-700,
 html.light .border-slate-800\/80,
@@ -66,7 +86,7 @@ html.light .divide-slate-800\/60 {
   border-color: #e2e8f0 !important;
 }
 
-/* 3. Typographie Haute Lisibilité (Noir d'Encre & Gris Anthracite) */
+/* 4. Typographie Haute Lisibilité (Noir d'Encre & Gris Anthracite) */
 html.light .text-white {
   color: #0f172a !important;
   font-weight: 700;
@@ -83,7 +103,7 @@ html.light .text-slate-500 {
   color: #475569 !important;
 }
 
-/* 4. Formulaires, Champs et Sélecteurs Clairs */
+/* 5. Formulaires, Champs et Sélecteurs Clairs */
 html.light input,
 html.light select,
 html.light textarea {
@@ -104,12 +124,13 @@ html.light input::placeholder {
   color: #94a3b8 !important;
 }
 
-/* 5. Badges et Alertes aux Couleurs Officielles du Congo */
+/* 6. Badges & Liens Actifs aux Couleurs Officielles du Congo */
 html.light .bg-emerald-950,
 html.light .bg-emerald-950\/60,
 html.light .bg-emerald-950\/80 {
   background-color: #ecfdf5 !important;
   border-color: #a7f3d0 !important;
+  color: #047857 !important;
 }
 html.light .text-emerald-400,
 html.light .text-congo-green {
@@ -123,6 +144,7 @@ html.light .bg-amber-950\/80,
 html.light .bg-yellow-950\/30 {
   background-color: #fffbeb !important;
   border-color: #fde68a !important;
+  color: #b45309 !important;
 }
 html.light .text-congo-yellow {
   color: #b45309 !important;
@@ -134,6 +156,7 @@ html.light .bg-red-950\/60,
 html.light .bg-red-950\/80 {
   background-color: #fef2f2 !important;
   border-color: #fecaca !important;
+  color: #b91c1c !important;
 }
 html.light .text-congo-red,
 html.light .text-red-400 {
@@ -145,26 +168,20 @@ html.light .bg-sky-950,
 html.light .bg-sky-950\/60 {
   background-color: #f0f9ff !important;
   border-color: #bae6fd !important;
+  color: #0369a1 !important;
 }
 html.light .text-sky-400 {
   color: #0369a1 !important;
   font-weight: 700 !important;
 }
 
-/* 6. Boutons d'Action Clairs */
-html.light .bg-slate-800,
-html.light .bg-slate-800\/60 {
+/* 7. Hover et Actions de la Barre Latérale en Mode Clair */
+html.light .hover\:bg-slate-900:hover,
+html.light .hover\:bg-slate-800:hover {
   background-color: #f1f5f9 !important;
-  color: #1e293b !important;
-  border-color: #cbd5e1 !important;
-}
-
-html.light .bg-slate-800:hover {
-  background-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 
-/* 7. Barre Latérale en Mode Clair */
 html.light aside {
   background-color: #ffffff !important;
   border-right-color: #e2e8f0 !important;

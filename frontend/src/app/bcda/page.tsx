@@ -380,13 +380,13 @@ export default function BcdaPortalPage() {
           <div className="flex flex-wrap gap-3">
             {/* Actions selon le rôle */}
             {isArtist && (
-              <button
-                onClick={() => setIsRegisterWorkOpen(true)}
+              <Link
+                href="/bcda/deposer"
                 className="px-4 py-2.5 bg-congo-green hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-lg flex items-center space-x-2 transition"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Déposer une Œuvre</span>
-              </button>
+              </Link>
             )}
 
             {(isOrganizer || isBcdaAgent) && (
