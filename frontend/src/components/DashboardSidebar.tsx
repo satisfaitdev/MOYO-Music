@@ -347,6 +347,24 @@ export default function DashboardSidebar() {
           </div>
         )}
 
+        {/* BOUTON CHANGEMENT DE THÈME CONGO LIGHT / DARK */}
+        <button
+          onClick={toggleTheme}
+          className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs text-slate-400 hover:text-white hover:bg-slate-900 transition ${
+            isCollapsed ? "justify-center px-2" : ""
+          }`}
+          title={theme === "dark" ? "Passer en Mode Clair Institutionnel 🇨🇬" : "Passer en Mode Sombre Studio 🌙"}
+        >
+          {theme === "dark" ? (
+            <Sun className="w-4 h-4 text-congo-yellow flex-shrink-0" />
+          ) : (
+            <Moon className="w-4 h-4 text-congo-green flex-shrink-0" />
+          )}
+          {!isCollapsed && (
+            <span>{theme === "dark" ? "Mode Clair 🇨🇬" : "Mode Sombre 🌙"}</span>
+          )}
+        </button>
+
         <button
           onClick={logout}
           className={`w-full flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs text-red-400 hover:bg-red-950/40 hover:border hover:border-red-800/60 transition ${

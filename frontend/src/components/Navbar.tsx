@@ -8,13 +8,17 @@ import {
   LogIn, 
   ShieldCheck,
   Menu,
-  X
+  X,
+  Sun,
+  Moon
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { useTheme } from "@/lib/theme-context";
 import AuthModal from "./AuthModal";
 
 export default function Navbar() {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -78,8 +82,16 @@ export default function Navbar() {
               </Link>
             </div>
 
-            {/* Bouton Connexion */}
+            {/* Bouton Connexion & Theme Switcher */}
             <div className="hidden md:flex items-center space-x-3">
+              <button
+                onClick={toggleTheme}
+                className="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-800 transition"
+                title={theme === "dark" ? "Mode Clair Institutionnel 🇨🇬" : "Mode Sombre Studio 🌙"}
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4 text-congo-yellow" /> : <Moon className="w-4 h-4 text-congo-green" />}
+              </button>
+
               <button
                 onClick={() => setIsAuthModalOpen(true)}
                 className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white hover:bg-slate-800 transition shadow-md"
