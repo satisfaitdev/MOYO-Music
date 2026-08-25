@@ -367,13 +367,13 @@ export default function DeposerOeuvrePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in text-white">
       
       {/* Bouton Retour */}
       <div>
         <Link
           href="/bcda"
-          className="inline-flex items-center space-x-2 text-xs text-slate-500 hover:text-slate-900 transition font-bold"
+          className="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-white transition font-bold"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Retour à mon Espace BCDA</span>
@@ -381,21 +381,21 @@ export default function DeposerOeuvrePage() {
       </div>
 
       {/* En-tête BCDA Officiel */}
-      <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800 mb-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-semibold text-emerald-400 mb-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>République du Congo • Bureau Congolais du Droit d'Auteur (BCDA) 🇨🇬</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-black text-white">
             Dépôt d'Œuvre & Gestion Dynamique des Splits
           </h1>
-          <p className="text-xs text-slate-600 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             Recherche instantanée de collaborateurs, jauge de répartition sur 100% et <strong>empreinte acoustique IA anti-plagiat</strong>.
           </p>
         </div>
 
-        <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
+        <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-congo-yellow border border-amber-500/30">
           Standard SACEM & OAPI
         </span>
       </div>
@@ -411,10 +411,10 @@ export default function DeposerOeuvrePage() {
             key={s.num}
             className={`p-3.5 rounded-2xl border text-center transition ${
               step === s.num
-                ? "bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm"
+                ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold shadow-lg"
                 : step > s.num
-                ? "bg-white border-slate-300 text-slate-700"
-                : "bg-slate-50 border-slate-200 text-slate-400"
+                ? "bg-slate-900 border-slate-700 text-slate-200"
+                : "bg-slate-950 border-slate-800 text-slate-500"
             }`}
           >
             <span className="text-[10px] block uppercase font-mono">Étape {s.num}</span>
@@ -427,32 +427,32 @@ export default function DeposerOeuvrePage() {
       {/* ÉTAPE 1 : TITRE, AUDIO MASTER & VÉRIFICATION IA D'ORIGINALITÉ */}
       {/* ========================================================================= */}
       {step === 1 && (
-        <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-3xl shadow-sm space-y-6">
-          <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-            <Music className="w-5 h-5 text-emerald-600" />
+        <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6">
+          <h2 className="text-base font-bold text-white flex items-center space-x-2">
+            <Music className="w-5 h-5 text-emerald-400" />
             <span>1. Identification & Preuve de Propriété (IA Fingerprinting)</span>
           </h2>
 
           <div className="space-y-4 text-xs">
             <div>
-              <label className="text-slate-700 font-bold block mb-1.5">Titre de la Chanson / Musique *</label>
+              <label className="text-slate-300 font-bold block mb-1.5">Titre de la Chanson / Musique *</label>
               <input
                 type="text"
                 required
                 placeholder="Ex: Rumba du Fleuve Congo"
                 value={workTitle}
                 onChange={(e) => setWorkTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-semibold focus:border-emerald-600"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm font-semibold focus:border-congo-yellow focus:ring-1 focus:ring-congo-yellow"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-slate-700 font-bold block mb-1.5">Genre Musical</label>
+                <label className="text-slate-300 font-bold block mb-1.5">Genre Musical</label>
                 <select
                   value={workGenre}
                   onChange={(e) => setWorkGenre(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-xs font-medium"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs font-medium focus:border-congo-yellow"
                 >
                   <option value="Rumba Congolaise">Rumba Congolaise</option>
                   <option value="Soukous / Ndombolo">Soukous / Ndombolo</option>
@@ -464,29 +464,29 @@ export default function DeposerOeuvrePage() {
               </div>
 
               <div>
-                <label className="text-slate-700 font-bold block mb-1.5">Année de Création</label>
+                <label className="text-slate-300 font-bold block mb-1.5">Année de Création</label>
                 <input
                   type="number"
                   value={creationYear}
                   onChange={(e) => setCreationYear(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-xs font-medium"
+                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs font-medium focus:border-congo-yellow"
                 />
               </div>
             </div>
 
             {/* Téléversement Audio & Analyse IA Multi-Registres */}
-            <div className="p-5 bg-emerald-50/50 border border-emerald-200 rounded-2xl space-y-3">
+            <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
               <div className="flex justify-between items-start">
-                <label className="text-emerald-900 font-bold flex items-center space-x-2">
-                  <Upload className="w-4 h-4 text-emerald-700" />
+                <label className="text-emerald-400 font-bold flex items-center space-x-2">
+                  <Upload className="w-4 h-4 text-emerald-400" />
                   <span>Téléversement Audio Master (.WAV / .MP3) pour Empreinte Acoustique & Contrôle Mondial *</span>
                 </label>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
                   Réseau CISAC & Content ID
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <p className="text-[11px] text-slate-400 leading-relaxed">
                 Afin d'éviter toute tentative de fraude ou d'appropriation d'un titre international non encore déposé au Congo, le fichier audio est scanné et comparé en temps réel contre les bases de données mondiales (<strong>CISAC mondial, Audible Magic, ACRCloud & YouTube Content ID — plus de 100 millions d'œuvres</strong>).
               </p>
               
@@ -494,30 +494,30 @@ export default function DeposerOeuvrePage() {
                 type="file"
                 accept="audio/*"
                 onChange={handleAudioUpload}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer"
+                className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer"
               />
 
               {/* État du scan IA */}
               {isScanningAudio && (
-                <div className="p-4 bg-white rounded-xl border border-emerald-200 space-y-2 animate-pulse">
-                  <div className="flex items-center space-x-2 text-xs text-emerald-800 font-bold">
-                    <Cpu className="w-4 h-4 animate-spin text-emerald-600" />
+                <div className="p-4 bg-slate-900 rounded-xl border border-emerald-500/30 space-y-2 animate-pulse">
+                  <div className="flex items-center space-x-2 text-xs text-emerald-400 font-bold">
+                    <Cpu className="w-4 h-4 animate-spin text-emerald-400" />
                     <span>Contrôle Croisé Multi-Registres en cours...</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-500 font-mono">
-                    <div className="p-2 bg-slate-50 rounded border">1. Scan Répertoire BCDA 🇨🇬</div>
-                    <div className="p-2 bg-slate-50 rounded border">2. Scan Registre Mondial CISAC 🌍</div>
-                    <div className="p-2 bg-slate-50 rounded border">3. Scan YouTube Content ID 🎵</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-400 font-mono">
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">1. Scan Répertoire BCDA 🇨🇬</div>
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">2. Scan Registre Mondial CISAC 🌍</div>
+                    <div className="p-2 bg-slate-950 rounded border border-slate-800">3. Scan YouTube Content ID 🎵</div>
                   </div>
                 </div>
               )}
 
               {audioFingerprintData && (
                 audioFingerprintData.duplicateFound ? (
-                  <div className="p-5 bg-rose-50 border-2 border-rose-400 rounded-2xl space-y-3 shadow-md animate-fade-in">
-                    <div className="flex justify-between items-start border-b border-rose-200 pb-2.5">
-                      <div className="flex items-center space-x-2 text-rose-900 font-black text-xs">
-                        <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+                  <div className="p-5 bg-rose-950/40 border-2 border-rose-500/80 rounded-2xl space-y-3 shadow-md animate-fade-in">
+                    <div className="flex justify-between items-start border-b border-rose-500/30 pb-2.5">
+                      <div className="flex items-center space-x-2 text-rose-300 font-black text-xs">
+                        <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
                         <span>🚫 ALERTE FRAUDE INTERNATIONALE DÉTECTÉE (MATCH {audioFingerprintData.fraudDetails?.matchPercentage || 99}%)</span>
                       </div>
                       <span className="text-[10px] font-bold uppercase bg-rose-600 text-white px-2.5 py-0.5 rounded-full">
@@ -525,69 +525,69 @@ export default function DeposerOeuvrePage() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-rose-800 font-medium leading-relaxed">
+                    <p className="text-xs text-rose-200 font-medium leading-relaxed">
                       {audioFingerprintData.fraudDetails?.reason}
                     </p>
 
                     {audioFingerprintData.fraudDetails && (
-                      <div className="p-3.5 bg-white border border-rose-200 rounded-xl space-y-1.5 text-xs text-slate-700">
+                      <div className="p-3.5 bg-slate-900/90 border border-rose-500/30 rounded-xl space-y-1.5 text-xs text-slate-300">
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Artiste Propriétaire Détecté :</span>
-                          <strong className="text-rose-900 font-bold">{audioFingerprintData.fraudDetails.artist}</strong>
+                          <span className="text-slate-400">Artiste Propriétaire Détecté :</span>
+                          <strong className="text-rose-400 font-bold">{audioFingerprintData.fraudDetails.artist}</strong>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Titre Identifié :</span>
-                          <strong className="text-slate-900">{audioFingerprintData.fraudDetails.title}</strong>
+                          <span className="text-slate-400">Titre Identifié :</span>
+                          <strong className="text-white">{audioFingerprintData.fraudDetails.title}</strong>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Label / Distributeur :</span>
-                          <span className="text-slate-700">{audioFingerprintData.fraudDetails.label}</span>
+                          <span className="text-slate-400">Label / Distributeur :</span>
+                          <span className="text-slate-300">{audioFingerprintData.fraudDetails.label}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Code ISRC International :</span>
-                          <span className="font-mono text-rose-800 font-bold">{audioFingerprintData.fraudDetails.isrc}</span>
+                          <span className="text-slate-400">Code ISRC International :</span>
+                          <span className="font-mono text-rose-300 font-bold">{audioFingerprintData.fraudDetails.isrc}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-slate-500">Registre Source :</span>
-                          <span className="text-slate-600 font-semibold">{audioFingerprintData.fraudDetails.registry}</span>
+                          <span className="text-slate-400">Registre Source :</span>
+                          <span className="text-slate-300 font-semibold">{audioFingerprintData.fraudDetails.registry}</span>
                         </div>
                       </div>
                     )}
 
-                    <div className="text-[10px] text-rose-700 bg-rose-100/70 p-2.5 rounded-xl border border-rose-200">
+                    <div className="text-[10px] text-rose-300 bg-rose-900/30 p-2.5 rounded-xl border border-rose-500/30">
                       ⚖️ <strong>Mesure de Protection :</strong> Vous ne pouvez pas déposer ce morceau car il n'a pas été créé par vous. Pour continuer, veuillez téléverser un fichier audio original dont vous êtes l'auteur ou le compositeur.
                     </div>
                   </div>
                 ) : (
-                  <div className="p-4 bg-white border border-emerald-300 rounded-2xl space-y-3 shadow-sm">
-                    <div className="flex justify-between items-center text-xs border-b border-slate-100 pb-2">
-                      <span className="font-bold text-emerald-800 flex items-center space-x-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <div className="p-4 bg-emerald-950/30 border border-emerald-500/50 rounded-2xl space-y-3 shadow-sm">
+                    <div className="flex justify-between items-center text-xs border-b border-emerald-500/20 pb-2">
+                      <span className="font-bold text-emerald-400 flex items-center space-x-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                         <span>Rapport de Conformité : 100% Morceau Original & Inédit</span>
                       </span>
-                      <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] text-emerald-300 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
                         Aucun Plagiat Détecté
                       </span>
                     </div>
 
                     {/* 3 Niveaux de vérification validés */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
-                      <div className="p-2 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-0.5">
-                        <strong className="text-emerald-900 block">🇨🇬 BCDA National</strong>
-                        <span className="text-slate-600">0 doublon dans le répertoire</span>
+                      <div className="p-2 bg-slate-900/80 border border-emerald-500/30 rounded-xl space-y-0.5">
+                        <strong className="text-emerald-400 block">🇨🇬 BCDA National</strong>
+                        <span className="text-slate-400">0 doublon dans le répertoire</span>
                       </div>
-                      <div className="p-2 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-0.5">
-                        <strong className="text-emerald-900 block">🌍 Réseau CISAC Mondial</strong>
-                        <span className="text-slate-600">Aucune revendication étrangère</span>
+                      <div className="p-2 bg-slate-900/80 border border-emerald-500/30 rounded-xl space-y-0.5">
+                        <strong className="text-emerald-400 block">🌍 Réseau CISAC Mondial</strong>
+                        <span className="text-slate-400">Aucune revendication étrangère</span>
                       </div>
-                      <div className="p-2 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-0.5">
-                        <strong className="text-emerald-900 block">🎵 YouTube Content ID</strong>
-                        <span className="text-slate-600">Empreinte audio unique</span>
+                      <div className="p-2 bg-slate-900/80 border border-emerald-500/30 rounded-xl space-y-0.5">
+                        <strong className="text-emerald-400 block">🎵 YouTube Content ID</strong>
+                        <span className="text-slate-400">Empreinte audio unique</span>
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-slate-500 font-mono bg-slate-50 p-2 rounded-lg break-all">
-                      Preuve d'Antériorité Cryptographique : <strong className="text-slate-800">{audioFingerprintData.hash}</strong>
+                    <div className="text-[10px] text-slate-400 font-mono bg-slate-950 p-2 rounded-lg break-all border border-slate-800">
+                      Preuve d'Antériorité Cryptographique : <strong className="text-congo-yellow">{audioFingerprintData.hash}</strong>
                     </div>
                   </div>
                 )
@@ -595,28 +595,28 @@ export default function DeposerOeuvrePage() {
             </div>
 
             {/* Attestation sur l'honneur de propriété & Responsabilité Pénale */}
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
+            <div className="p-4 bg-slate-950/90 border border-amber-500/30 rounded-2xl space-y-2">
               <label className="flex items-start space-x-3 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={certifyOwnership}
                   disabled={audioFingerprintData?.duplicateFound}
                   onChange={(e) => setCertifyOwnership(e.target.checked)}
-                  className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 mt-0.5 disabled:opacity-30"
+                  className="w-4 h-4 rounded text-congo-yellow focus:ring-congo-yellow border-slate-700 bg-slate-900 mt-0.5 disabled:opacity-30"
                 />
-                <span className="text-xs text-slate-800 leading-snug">
-                  <strong>Attestation de Propriété Légale & Clause Anti-Fraude :</strong> Je certifie sur l'honneur être l'auteur/créateur original de cette création ou détenir les autorisations légales certifiées. Toute tentative de dépôt frauduleux d'une œuvre internationale ou locale est passible de sanctions pénales selon la législation sur la propriété littéraire et artistique en République du Congo.
+                <span className="text-xs text-slate-300 leading-snug">
+                  <strong className="text-congo-yellow">Attestation de Propriété Légale & Clause Anti-Fraude :</strong> Je certifie sur l'honneur être l'auteur/créateur original de cette création ou détenir les autorisations légales certifiées. Toute tentative de dépôt frauduleux d'une œuvre internationale ou locale est passible de sanctions pénales selon la législation sur la propriété littéraire et artistique en République du Congo.
                 </span>
               </label>
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-slate-200">
+          <div className="flex justify-end pt-4 border-t border-slate-800">
             <button
               type="button"
               disabled={!workTitle.trim() || !certifyOwnership || audioFingerprintData?.duplicateFound}
               onClick={() => setStep(2)}
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-md transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <span>Suivant : Ajouter Collaborateurs & Répartir les Splits</span>
               <ArrowRight className="w-4 h-4" />
@@ -629,15 +629,15 @@ export default function DeposerOeuvrePage() {
       {/* ÉTAPE 2 : RECHERCHE DYNAMIQUE & GESTION DES COLLABORATEURS (SPLITS) */}
       {/* ========================================================================= */}
       {step === 2 && (
-        <div className="bg-white border border-slate-200 p-6 sm:p-8 rounded-3xl shadow-sm space-y-6">
+        <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6">
           
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
             <div>
-              <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                <Users className="w-5 h-5 text-amber-600" />
+              <h2 className="text-base font-bold text-white flex items-center space-x-2">
+                <Users className="w-5 h-5 text-congo-yellow" />
                 <span>2. Collaborateurs & Partage des Gains (Splits)</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Recherchez des artistes ou ajoutez des collaborateurs avec leur rôle et leur pourcentage.
               </p>
             </div>
@@ -647,17 +647,17 @@ export default function DeposerOeuvrePage() {
               <button
                 type="button"
                 onClick={handleEqualSplit}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center space-x-1 transition"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1 transition border border-slate-700"
                 title="Diviser équitablement entre tous les ayants droit"
               >
-                <Scale className="w-3.5 h-3.5 text-emerald-700" />
+                <Scale className="w-3.5 h-3.5 text-congo-yellow" />
                 <span>Split Égal ⚖️</span>
               </button>
 
               <span className={`px-3 py-1.5 rounded-xl text-xs font-black ${
                 totalSplit === 100
-                  ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
-                  : "bg-rose-100 text-rose-800 border border-rose-300"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                  : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
               }`}>
                 Total : {totalSplit} % / 100%
               </span>
@@ -665,19 +665,19 @@ export default function DeposerOeuvrePage() {
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600" />
+            <div className="p-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {/* 🔍 BARRE DE RECHERCHE DE COLLABORATEUR DANS LA COMMUNAUTÉ */}
           <div className="relative">
-            <label className="text-xs font-bold text-slate-700 block mb-1.5">
+            <label className="text-xs font-bold text-slate-300 block mb-1.5">
               Rechercher un Artiste ou Collaborateur sur Moyo Culture :
             </label>
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
               <input
                 type="text"
                 placeholder="Tapez un nom d'artiste, compositeur, réalisateur..."
@@ -687,28 +687,28 @@ export default function DeposerOeuvrePage() {
                   setSearchQuery(e.target.value);
                   setShowSearchDropdown(true);
                 }}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-emerald-600"
+                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-congo-yellow"
               />
             </div>
 
             {/* Menu Déroulant des Suggestions */}
             {showSearchDropdown && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 max-h-56 overflow-y-auto divide-y divide-slate-100">
+              <div className="absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-20 max-h-56 overflow-y-auto divide-y divide-slate-800">
                 {REGISTERED_COMMUNITY.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((sug, i) => (
                   <button
                     key={i}
                     type="button"
                     onClick={() => addCollaboratorFromSuggestion(sug)}
-                    className="w-full p-3 text-left hover:bg-emerald-50 flex items-center justify-between text-xs transition"
+                    className="w-full p-3 text-left hover:bg-slate-800/80 flex items-center justify-between text-xs transition"
                   >
                     <div className="flex items-center space-x-2.5">
                       <span className="text-base">{sug.avatar}</span>
                       <div>
-                        <strong className="text-slate-900 block">{sug.name}</strong>
-                        <span className="text-[10px] text-slate-500">{sug.roleLabel} • MoMo: {sug.phone}</span>
+                        <strong className="text-white block">{sug.name}</strong>
+                        <span className="text-[10px] text-slate-400">{sug.roleLabel} • MoMo: {sug.phone}</span>
                       </div>
                     </div>
-                    <span className="text-emerald-700 font-bold text-xs">+ Ajouter</span>
+                    <span className="text-congo-yellow font-bold text-xs">+ Ajouter</span>
                   </button>
                 ))}
               </div>
@@ -717,22 +717,22 @@ export default function DeposerOeuvrePage() {
 
           {/* 📋 LISTE DES CARTES COLLABORATEURS AJOUTÉS */}
           <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-700 block">
+            <label className="text-xs font-bold text-slate-300 block">
               Ayants Droit Inscrits sur cette Œuvre ({collaborators.length}) :
             </label>
 
             {collaborators.map((collab) => (
               <div
                 key={collab.id}
-                className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-sm hover:border-slate-300 transition"
+                className="p-4 bg-slate-950 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-md hover:border-slate-700 transition"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-lg shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg">
                     {collab.avatarUrl || "👤"}
                   </div>
                   <div>
-                    <strong className="text-slate-900 text-sm block font-bold">{collab.name}</strong>
-                    <span className="text-[10px] text-slate-500 font-mono">MoMo : {collab.phone}</span>
+                    <strong className="text-white text-sm block font-bold">{collab.name}</strong>
+                    <span className="text-[10px] text-slate-400 font-mono">MoMo : {collab.phone}</span>
                   </div>
                 </div>
 
@@ -741,7 +741,7 @@ export default function DeposerOeuvrePage() {
                   <select
                     value={collab.role}
                     onChange={(e) => updateRole(collab.id, e.target.value as any)}
-                    className="px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-900 text-xs font-semibold"
+                    className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-semibold focus:border-congo-yellow"
                   >
                     <option value="author">Auteur (Paroles) ✍️</option>
                     <option value="composer">Compositeur (Musique) 🎼</option>
@@ -759,16 +759,16 @@ export default function DeposerOeuvrePage() {
                       max={100}
                       value={collab.splitPercentage}
                       onChange={(e) => updateSplit(collab.id, parseFloat(e.target.value) || 0)}
-                      className="w-16 px-2.5 py-2 bg-white border border-slate-300 rounded-xl text-center font-black text-amber-700 text-sm"
+                      className="w-16 px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-center font-black text-congo-yellow text-sm focus:border-congo-yellow"
                     />
-                    <span className="font-bold text-slate-600">%</span>
+                    <span className="font-bold text-slate-400">%</span>
                   </div>
 
                   {/* Bouton Supprimer */}
                   <button
                     type="button"
                     onClick={() => removeCollaborator(collab.id)}
-                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition"
                     title="Retirer ce collaborateur"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -779,9 +779,9 @@ export default function DeposerOeuvrePage() {
           </div>
 
           {/* ➕ AJOUT MANUEL D'UN COLLABORATEUR EXTERNE */}
-          <div className="p-4 bg-white border border-dashed border-slate-300 rounded-2xl space-y-3">
-            <span className="text-xs font-bold text-slate-700 block flex items-center space-x-1.5">
-              <UserPlus className="w-4 h-4 text-emerald-600" />
+          <div className="p-4 bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl space-y-3">
+            <span className="text-xs font-bold text-slate-300 block flex items-center space-x-1.5">
+              <UserPlus className="w-4 h-4 text-emerald-400" />
               <span>Ajouter manuellement un collaborateur non listé :</span>
             </span>
 
@@ -791,19 +791,19 @@ export default function DeposerOeuvrePage() {
                 placeholder="Nom complet ou Pseudo"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                className="sm:col-span-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900"
+                className="sm:col-span-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:border-congo-yellow"
               />
               <input
                 type="tel"
                 placeholder="N° Mobile Money (+242...)"
                 value={customPhone}
                 onChange={(e) => setCustomPhone(e.target.value)}
-                className="sm:col-span-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900"
+                className="sm:col-span-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:border-congo-yellow"
               />
               <select
                 value={customRole}
                 onChange={(e) => setCustomRole(e.target.value as any)}
-                className="sm:col-span-1 px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 font-medium"
+                className="sm:col-span-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium focus:border-congo-yellow"
               >
                 <option value="author">Auteur (Paroles) ✍️</option>
                 <option value="composer">Compositeur (Musique) 🎼</option>
@@ -815,25 +815,25 @@ export default function DeposerOeuvrePage() {
               <button
                 type="button"
                 onClick={addCustomCollaborator}
-                className="sm:col-span-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition"
+                className="sm:col-span-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition border border-slate-700"
               >
                 + Ajouter à la Liste
               </button>
             </div>
           </div>
 
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-[11px] text-amber-900 flex items-start space-x-2">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-700" />
+          <div className="p-4 bg-slate-950 border border-amber-500/30 rounded-2xl text-[11px] text-slate-300 flex items-start space-x-2">
+            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-congo-yellow" />
             <span>
-              <strong>Séquestre BCDA d'Attente :</strong> Dès qu'une redevance est collectée (TV, radios, streaming ou discothèques), chaque ayant droit reçoit automatiquement sa part sur son numéro Mobile Money. Si un numéro n'est pas encore inscrit sur Moyo Culture, ses gains restent sous séquestre sécurisé au BCDA jusqu'à son retrait.
+              <strong className="text-congo-yellow">Séquestre BCDA d'Attente :</strong> Dès qu'une redevance est collectée (TV, radios, streaming ou discothèques), chaque ayant droit reçoit automatiquement sa part sur son numéro Mobile Money. Si un numéro n'est pas encore inscrit sur Moyo Culture, ses gains restent sous séquestre sécurisé au BCDA jusqu'à son retrait.
             </span>
           </div>
 
-          <div className="flex justify-between pt-4 border-t border-slate-200">
+          <div className="flex justify-between pt-4 border-t border-slate-800">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold"
+              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
             >
               Précédent
             </button>
@@ -841,7 +841,7 @@ export default function DeposerOeuvrePage() {
               type="button"
               disabled={isSubmitting || totalSplit !== 100}
               onClick={handleSubmit}
-              className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-md transition disabled:opacity-50 flex items-center space-x-2"
+              className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg transition disabled:opacity-50 flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <span>Immatriculation BCDA en cours...</span>
@@ -857,41 +857,41 @@ export default function DeposerOeuvrePage() {
       {/* ÉTAPE 3 : CONFIRMATION & CERTIFICAT OFFICIEL BCDA */}
       {/* ========================================================================= */}
       {step === 3 && registeredResult && (
-        <div className="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm text-center space-y-6">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
+        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
+          <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div>
-            <h2 className="text-2xl font-black text-slate-900">Œuvre Immatriculée au BCDA !</h2>
-            <p className="text-xs text-slate-600 mt-1">
+            <h2 className="text-2xl font-black text-white">Œuvre Immatriculée au BCDA !</h2>
+            <p className="text-xs text-slate-400 mt-1">
               Votre œuvre <strong>"{registeredResult.title}"</strong> a été enregistrée avec succès au Répertoire National.
             </p>
           </div>
 
-          <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200 text-left space-y-3 text-xs font-mono max-w-md mx-auto">
-            <div className="flex justify-between border-b border-slate-200 pb-2">
-              <span className="text-slate-500">Code ISWC (Droit d'Auteur) :</span>
-              <strong className="text-slate-900 font-bold">{registeredResult.iswc_code || "T-304.891.188-K"}</strong>
+          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-left space-y-3 text-xs font-mono max-w-md mx-auto">
+            <div className="flex justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Code ISWC (Droit d'Auteur) :</span>
+              <strong className="text-white font-bold">{registeredResult.iswc_code || "T-304.891.188-K"}</strong>
             </div>
-            <div className="flex justify-between border-b border-slate-200 pb-2">
-              <span className="text-slate-500">Code ISRC National :</span>
-              <strong className="text-emerald-700 font-bold">{registeredResult.isrc_code || "CG-B01-26-00349"}</strong>
+            <div className="flex justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">Code ISRC National :</span>
+              <strong className="text-emerald-400 font-bold">{registeredResult.isrc_code || "CG-B01-26-00349"}</strong>
             </div>
-            <div className="flex justify-between border-b border-slate-200 pb-2">
-              <span className="text-slate-500">N° Certificat BCDA :</span>
-              <strong className="text-amber-800 font-bold">{registeredResult.bcda_code || "BCDA-CG-2026-6249"}</strong>
+            <div className="flex justify-between border-b border-slate-800 pb-2">
+              <span className="text-slate-400">N° Certificat BCDA :</span>
+              <strong className="text-congo-yellow font-bold">{registeredResult.bcda_code || "BCDA-CG-2026-6249"}</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">Preuve d'Antériorité :</span>
-              <span className="text-[10px] text-slate-600 truncate max-w-[200px]">{registeredResult.fingerprint_hash}</span>
+              <span className="text-slate-400">Preuve d'Antériorité :</span>
+              <span className="text-[10px] text-slate-300 truncate max-w-[200px]">{registeredResult.fingerprint_hash}</span>
             </div>
           </div>
 
           <div className="flex justify-center gap-3">
             <Link
               href="/bcda"
-              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md"
+              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg"
             >
               Voir mon Répertoire BCDA
             </Link>
