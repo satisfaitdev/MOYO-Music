@@ -43,8 +43,8 @@ export class KibangouPayService {
   constructor() {
     this.config = {
       baseUrl: process.env.KIBANGOUPAY_BASE_URL || 'http://localhost:3000',
-      projectId: process.env.KIBANGOUPAY_PROJECT_ID || 'proj_moyo_culture_congo_2026',
-      apiKey: process.env.KIBANGOUPAY_API_KEY || 'kbp_live_moyo_culture_secret_key_cg',
+      projectId: process.env.KIBANGOUPAY_PROJECT_ID || 'proj_C8248510',
+      apiKey: process.env.KIBANGOUPAY_API_KEY || 'pk_live_338efd65633b4855ae0d6bf005bbda8e',
     };
   }
 
