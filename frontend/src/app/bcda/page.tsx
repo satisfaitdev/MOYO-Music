@@ -378,6 +378,15 @@ export default function BcdaPortalPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
+            {/* Lien Guide & FAQ Officielle SACEM/BCDA */}
+            <Link
+              href="/bcda/guide"
+              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs shadow-lg flex items-center space-x-2 transition border border-slate-700"
+            >
+              <FileText className="w-4 h-4 text-congo-yellow" />
+              <span>Guide & FAQ Droit d'Auteur 🇨🇬</span>
+            </Link>
+
             {/* Actions selon le rôle */}
             {isArtist && (
               <Link
@@ -385,7 +394,7 @@ export default function BcdaPortalPage() {
                 className="px-4 py-2.5 bg-congo-green hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-lg flex items-center space-x-2 transition"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>Déposer une Œuvre</span>
+                <span>Déposer une Œuvre (8 Étapes)</span>
               </Link>
             )}
 

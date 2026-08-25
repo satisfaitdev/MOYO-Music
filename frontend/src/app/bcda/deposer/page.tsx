@@ -909,45 +909,67 @@ export default function MusicStartBCDAProtectionPage() {
 
           {hasCoCreators === true && (
             <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
+              {/* En-tête Récapitulatif Titre & Durée comme dans la SACEM */}
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-wrap justify-between items-center text-xs text-slate-300 gap-3">
                 <div>
-                  <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-                    <Users className="w-5 h-5 text-congo-yellow" />
-                    <span>Répartition des Gains & Clés Phono (Splits)</span>
+                  <span className="text-slate-500">Titre de l'Œuvre : </span>
+                  <strong className="text-white font-bold">{workTitle || "Sans Titre"}</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500">Durée : </span>
+                  <strong className="text-congo-yellow font-mono">{Math.floor(audioDurationSeconds / 60)} minutes {audioDurationSeconds % 60} secondes</strong>
+                </div>
+                <div>
+                  <span className="text-slate-500">Genre : </span>
+                  <strong className="text-emerald-400 font-bold">{workStyle} ({workNature})</strong>
+                </div>
+                <Link href="/bcda/guide" target="_blank" className="text-congo-yellow hover:underline flex items-center space-x-1 text-[11px]">
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>Comprendre les clés PHONO / DEP / DR</span>
+                </Link>
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+                <div>
+                  <h2 className="text-lg font-black text-white flex items-center space-x-2">
+                    <Scale className="w-5 h-5 text-congo-yellow" />
+                    <span>Saisie des Clés PHONO et Calcul des Clés DEP et DR</span>
                   </h2>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Le total des parts de tous les co-créateurs doit être exactement égal à 100%.
+                    Droits de reproduction phonographique (PHONO), d'exécution publique (DEP) et de reproduction (DR).
                   </p>
                 </div>
 
+                {/* Bouton Partage Égalitaire Style SACEM */}
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
                     onClick={handleEqualSplit}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1 border border-slate-700"
+                    className="px-4 py-2 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 rounded-xl text-xs font-black flex items-center space-x-1.5 transition shadow-md"
+                    title="Appliquer un partage équitable sur PHONO, DEP et DR"
                   >
-                    <Scale className="w-3.5 h-3.5 text-congo-yellow" />
-                    <span>Split Égal ⚖️</span>
+                    <Scale className="w-4 h-4 text-sky-400" />
+                    <span>PARTAGE ÉGALITAIRE ⚖️</span>
                   </button>
 
-                  <span className={`px-3 py-1.5 rounded-xl text-xs font-black ${
+                  <span className={`px-3 py-2 rounded-xl text-xs font-black ${
                     totalSplit === 100
                       ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
                       : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                   }`}>
-                    Total : {totalSplit} % / 100%
+                    Total PHONO : {totalSplit}% / 100%
                   </span>
                 </div>
               </div>
 
               {/* 🔍 Recherche intelligente dans la communauté */}
               <div className="relative">
-                <label className="text-xs font-bold text-slate-300 block mb-1.5">Rechercher un artiste sur Moyo Culture :</label>
+                <label className="text-xs font-bold text-slate-300 block mb-1.5">Rechercher un ayant droit ou co-créateur :</label>
                 <div className="relative">
                   <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
                   <input
                     type="text"
-                    placeholder="Tapez un nom (DJ Brazza Beat, Mavoungou...)"
+                    placeholder="Tapez un nom (DJ Brazza Beat, Mavoungou, Producteur...)"
                     value={searchQuery}
                     onFocus={() => setShowSearchDropdown(true)}
                     onChange={(e) => {
@@ -981,66 +1003,106 @@ export default function MusicStartBCDAProtectionPage() {
                 )}
               </div>
 
-              {/* 📋 Cartes des Collaborateurs */}
-              <div className="space-y-3">
-                {collaborators.map((collab) => (
-                  <div
-                    key={collab.id}
-                    className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg">
-                        {collab.avatarUrl || "👤"}
-                      </div>
-                      <div>
-                        <strong className="text-white text-sm block font-bold">{collab.name}</strong>
-                        <span className="text-[10px] text-slate-400 font-mono">MoMo : {collab.phone}</span>
-                      </div>
-                    </div>
+              {/* 📋 TABLEAU OFFICIEL DES CRÉATEURS (Style SACEM / BCDA) */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950 shadow-xl">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-900 text-slate-400 font-bold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3.5">Nom & Prénom</th>
+                      <th className="p-3.5">Rôle / Qualité</th>
+                      <th className="p-3.5 text-center text-congo-yellow">Clés PHONO (%)</th>
+                      <th className="p-3.5 text-center text-emerald-400">Clés DEP (%)</th>
+                      <th className="p-3.5 text-center text-sky-400">Clés DR (%)</th>
+                      <th className="p-3.5 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/80">
+                    {collaborators.map((collab) => (
+                      <tr key={collab.id} className="hover:bg-slate-900/50 transition">
+                        <td className="p-3.5">
+                          <div className="flex items-center space-x-2.5">
+                            <span className="text-base">{collab.avatarUrl || "👤"}</span>
+                            <div>
+                              <strong className="text-white block font-bold">{collab.name}</strong>
+                              <span className="text-[10px] text-slate-500 font-mono">MoMo: {collab.phone}</span>
+                            </div>
+                          </div>
+                        </td>
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      <select
-                        value={collab.role}
-                        onChange={(e) => {
-                          setCollaborators(collaborators.map(c => c.id === collab.id ? { ...c, role: e.target.value as any } : c));
-                        }}
-                        className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-semibold"
-                      >
-                        <option value="composer">Compositeur 🎼</option>
-                        <option value="author">Auteur ✍️</option>
-                        <option value="beatmaker">Beatmaker 🎹</option>
-                        <option value="performer">Interprète 🎤</option>
-                        <option value="producer">Producteur 📀</option>
-                        <option value="clip_director">Réalisateur 🎬</option>
-                      </select>
+                        <td className="p-3.5">
+                          <select
+                            value={collab.role}
+                            onChange={(e) => {
+                              setCollaborators(collaborators.map(c => c.id === collab.id ? { ...c, role: e.target.value as any } : c));
+                            }}
+                            className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-semibold"
+                          >
+                            <option value="composer">Compositeur 🎼</option>
+                            <option value="author">Auteur ✍️</option>
+                            <option value="beatmaker">Beatmaker 🎹</option>
+                            <option value="adapter">Adaptateur 🗣️</option>
+                            <option value="performer">Interprète 🎤</option>
+                            <option value="producer">Producteur 📀</option>
+                            <option value="clip_director">Réalisateur 🎬</option>
+                          </select>
+                        </td>
 
-                      <div className="flex items-center space-x-1">
-                        <input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={collab.splitPercentage}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0;
-                            setCollaborators(collaborators.map(c => c.id === collab.id ? { ...c, splitPercentage: val } : c));
-                          }}
-                          className="w-16 px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-center font-black text-congo-yellow text-sm"
-                        />
-                        <span className="font-bold text-slate-400">%</span>
-                      </div>
+                        {/* Clé PHONO */}
+                        <td className="p-3.5 text-center">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={collab.splitPercentage}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setCollaborators(collaborators.map(c => c.id === collab.id ? { ...c, splitPercentage: val } : c));
+                            }}
+                            className="w-16 px-2 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-center font-black text-congo-yellow text-xs focus:border-congo-yellow"
+                          />
+                        </td>
 
-                      {collaborators.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => setCollaborators(collaborators.filter(c => c.id !== collab.id))}
-                          className="p-2 text-slate-500 hover:text-rose-400"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                        {/* Clé DEP (Exécution Publique) */}
+                        <td className="p-3.5 text-center">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={collab.splitPercentage}
+                            readOnly
+                            className="w-16 px-2 py-1.5 bg-slate-900/60 border border-slate-800 rounded-xl text-center font-bold text-emerald-400 text-xs opacity-90 cursor-default"
+                          />
+                        </td>
+
+                        {/* Clé DR (Reproduction Mécanique) */}
+                        <td className="p-3.5 text-center">
+                          <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            value={collab.splitPercentage}
+                            readOnly
+                            className="w-16 px-2 py-1.5 bg-slate-900/60 border border-slate-800 rounded-xl text-center font-bold text-sky-400 text-xs opacity-90 cursor-default"
+                          />
+                        </td>
+
+                        {/* Action Supprimer */}
+                        <td className="p-3.5 text-center">
+                          {collaborators.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => setCollaborators(collaborators.filter(c => c.id !== collab.id))}
+                              className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"
+                              title="Retirer ce créateur"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
               {/* Ajout manuel */}
@@ -1067,6 +1129,7 @@ export default function MusicStartBCDAProtectionPage() {
                   <option value="composer">Compositeur 🎼</option>
                   <option value="author">Auteur ✍️</option>
                   <option value="beatmaker">Beatmaker 🎹</option>
+                  <option value="adapter">Adaptateur 🗣️</option>
                   <option value="performer">Interprète 🎤</option>
                   <option value="producer">Producteur 📀</option>
                   <option value="clip_director">Réalisateur 🎬</option>
@@ -1076,7 +1139,7 @@ export default function MusicStartBCDAProtectionPage() {
                   onClick={() => addCollaborator(customName, customPhone, customRole)}
                   className="py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs"
                 >
-                  + Ajouter
+                  + Ajouter à la Clé
                 </button>
               </div>
 
