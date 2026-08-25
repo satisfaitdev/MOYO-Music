@@ -1,29 +1,34 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { 
   ShieldCheck, 
-  Music, 
-  Upload, 
-  Users, 
-  CheckCircle2, 
-  AlertCircle, 
   ArrowLeft, 
   ArrowRight, 
+  Upload, 
+  Users, 
   FileText, 
-  Sparkles,
-  Info,
-  Check,
-  Search,
-  UserPlus,
-  Trash2,
-  Lock,
-  FileBadge,
-  Scale,
-  Cpu,
-  FileCheck2
+  Music, 
+  Sparkles, 
+  CheckCircle2, 
+  AlertCircle, 
+  Trash2, 
+  UserPlus, 
+  Scale, 
+  Search, 
+  Info, 
+  Cpu, 
+  Check, 
+  FileCode, 
+  Layers, 
+  Radio, 
+  Key, 
+  Lock, 
+  FileSpreadsheet,
+  QrCode,
+  Sliders,
+  Volume2
 } from "lucide-react";
 import { bcdaApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -32,109 +37,144 @@ interface Collaborator {
   id: string;
   name: string;
   phone: string;
-  role: "author" | "composer" | "beatmaker" | "performer" | "producer" | "clip_director";
+  role: "author" | "composer" | "beatmaker" | "performer" | "producer" | "clip_director" | "adapter" | "editor";
   roleLabel: string;
   splitPercentage: number;
   avatarUrl?: string;
-  isRegistered?: boolean;
+  isRegistered: boolean;
 }
 
-const REGISTERED_COMMUNITY = [
-  { name: "Prince Nzassi - La Voix du Fleuve", phone: "+242068001122", role: "author", roleLabel: "Auteur des Paroles ✍️", avatar: "🎤" },
-  { name: "DJ Brazza Beat (Beatmaker)", phone: "+242065112233", role: "beatmaker", roleLabel: "Beatmaker / Arrangeur 🎹", avatar: "🎧" },
-  { name: "Maître Mavoungou Solo (Compositeur)", phone: "+242057889900", role: "composer", roleLabel: "Compositeur Mélodie 🎼", avatar: "🎸" },
-  { name: "Director Steven Awuku (Clip)", phone: "+242069900112", role: "clip_director", roleLabel: "Réalisateur Vidéo 🎬", avatar: "📹" },
-  { name: "Brazza Sound Master (Studio)", phone: "+242054455667", role: "producer", roleLabel: "Producteur Phonographique 📀", avatar: "🎚️" },
-  { name: "Chantre Grace Congo (Gospel)", phone: "+242064123456", role: "performer", roleLabel: "Artiste-Interprète 🎤", avatar: "✨" },
+// Styles musicaux avec couleurs dédiées (Inspiré MusicStart / SACEM)
+const MUSIC_STYLES = [
+  { id: "rumba", name: "Rumba Congolaise", color: "from-amber-600 to-yellow-600", bg: "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30" },
+  { id: "soukous", name: "Soukous / Ndombolo", color: "from-emerald-600 to-teal-600", bg: "bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/30" },
+  { id: "afrobeat", name: "Afrobeat Congo", color: "from-orange-600 to-red-600", bg: "bg-orange-500/10 hover:bg-orange-500/20 border-orange-500/30" },
+  { id: "rap", name: "Rap / Hip-Hop 242", color: "from-purple-600 to-indigo-600", bg: "bg-purple-500/10 hover:bg-purple-500/20 border-purple-500/30" },
+  { id: "gospel", name: "Gospel Congolais", color: "from-sky-600 to-blue-600", bg: "bg-sky-500/10 hover:bg-sky-500/20 border-sky-500/30" },
+  { id: "pop", name: "Pop / Dance", color: "from-pink-600 to-rose-600", bg: "bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30" },
+  { id: "reggae", name: "Reggae / Ragga", color: "from-lime-600 to-green-600", bg: "bg-lime-500/10 hover:bg-lime-500/20 border-lime-500/30" },
+  { id: "rnb", name: "RnB - Soul - Funk", color: "from-cyan-600 to-teal-600", bg: "bg-cyan-500/10 hover:bg-cyan-500/20 border-cyan-500/30" },
+  { id: "world", name: "Musique du Monde / Traditionnel", color: "from-yellow-600 to-amber-700", bg: "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/30" },
+  { id: "other", name: "Autre Genre", color: "from-slate-600 to-slate-700", bg: "bg-slate-500/10 hover:bg-slate-500/20 border-slate-500/30" }
 ];
 
-export default function DeposerOeuvrePage() {
+// Rôles MusicStart / SACEM avec descriptions
+const ROLE_OPTIONS = [
+  { id: "author", name: "Auteur", desc: "Écrit les paroles, textes ou poèmes de la chanson ✍️" },
+  { id: "composer", name: "Compositeur", desc: "Crée la mélodie, les accords et la musique 🎼" },
+  { id: "beatmaker", name: "Arrangeur / Beatmaker", desc: "Produit l'instrumentale, les drums et la structure sonore 🎹" },
+  { id: "adapter", name: "Adaptateur", desc: "Intervient sur les paroles, la traduction et l'adaptation 🗣️" },
+  { id: "performer", name: "Artiste-Interprète", desc: "Chanteur(se) ou musicien(ne) principal(e) 🎤" },
+  { id: "producer", name: "Producteur Phonographique", desc: "Finance et détient les droits sur le master audio 📀" },
+  { id: "clip_director", name: "Réalisateur Vidéo / Clip", desc: "Crée le scénario et réalise le clip audiovisuel 🎬" },
+];
+
+const REGISTERED_COMMUNITY = [
+  { name: "Prince Nzassi", phone: "+242068001122", role: "author", roleLabel: "Auteur / Chanteur", avatar: "🎤" },
+  { name: "DJ Brazza Beat", phone: "+242055551234", role: "beatmaker", roleLabel: "Beatmaker / Arrangeur", avatar: "🎹" },
+  { name: "Mavoungou Solo", phone: "+242066009988", role: "composer", roleLabel: "Guitariste Compositeur", avatar: "🎸" },
+  { name: "Director Steven Awuku", phone: "+242044445566", role: "clip_director", roleLabel: "Réalisateur de Clips", avatar: "🎬" },
+  { name: "Brazza Live Records", phone: "+242057008899", role: "producer", roleLabel: "Label & Producteur", avatar: "🏢" },
+];
+
+export default function MusicStartBCDAProtectionPage() {
   const { user } = useAuth();
-  const router = useRouter();
 
+  // Navigation en 8 étapes (Exactement selon le standard MusicStart & SACEM)
   const [step, setStep] = useState(1);
-  const [workTitle, setWorkTitle] = useState("");
-  const [workGenre, setWorkGenre] = useState("Rumba Congolaise");
-  const [creationYear, setCreationYear] = useState("2026");
 
-  // Vérification d'originalité & Empreinte Acoustique IA
+  // Étape 1 : Choix du type de fichier
+  const [fileCategory, setFileCategory] = useState<"audio" | "text">("audio");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isAudioUploaded, setIsAudioUploaded] = useState(false);
   const [isScanningAudio, setIsScanningAudio] = useState(false);
-  const [audioFingerprintData, setAudioFingerprintData] = useState<{
-    hash: string;
-    originalityScore: number;
-    duplicateFound: boolean;
-  } | null>(null);
-  const [certifyOwnership, setCertifyOwnership] = useState(false);
+  const [audioFingerprintData, setAudioFingerprintData] = useState<any>(null);
+  const [audioDurationSeconds, setAudioDurationSeconds] = useState(180);
 
-  // Liste Dynamique des Collaborateurs (Splits)
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([
-    {
-      id: "owner_1",
-      name: user?.artist_name || user?.full_name || "Prince Nzassi",
-      phone: user?.phone_number || "+242068001122",
-      role: "author",
-      roleLabel: "Auteur des Paroles ✍️",
-      splitPercentage: 50,
-      avatarUrl: "🎤",
-      isRegistered: true,
-    },
-    {
-      id: "owner_2",
-      name: "DJ Brazza Beat",
-      phone: "+242065112233",
-      role: "composer",
-      roleLabel: "Compositeur / Beatmaker 🎼",
-      splitPercentage: 50,
-      avatarUrl: "🎧",
-      isRegistered: true,
-    }
-  ]);
+  // Étape 2 : Définir la création
+  const [creationNature, setCreationNature] = useState<"new" | "existing">("new");
+  const [workNature, setWorkNature] = useState<"chant" | "instrumental" | "texte">("chant");
+  const [workStatus, setWorkStatus] = useState<"inedite" | "editee" | "demo">("inedite");
 
-  // Recherche de collaborateur
+  // Étape 3 : Titre
+  const [workTitle, setWorkTitle] = useState("");
+  const [workSubtitle, setWorkSubtitle] = useState("");
+
+  // Étape 4 : Styles & Données Techniques
+  const [workStyle, setWorkStyle] = useState("Rumba Congolaise");
+  const [bpmTempo, setBpmTempo] = useState<string>("120");
+  const [originCountry, setOriginCountry] = useState("République du Congo 🇨🇬");
+
+  // Étape 5 : Rôles de l'utilisateur
+  const [myRoles, setMyRoles] = useState<string[]>(["composer", "author"]);
+
+  // Étape 6 : Co-créateurs (NON / OUI)
+  const [hasCoCreators, setHasCoCreators] = useState<boolean | null>(null);
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customPhone, setCustomPhone] = useState("");
   const [customRole, setCustomRole] = useState<Collaborator["role"]>("composer");
 
+  // Étape 7 : Signature & Attestation
+  const [certifyOwnership, setCertifyOwnership] = useState(false);
+  const [smsCode, setSmsCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Étape 8 : Résultat officiel
   const [registeredResult, setRegisteredResult] = useState<any>(null);
 
-  // Total des splits calculé en direct
+  // Initialisation du premier créateur (L'artiste connecté)
+  useEffect(() => {
+    if (user && collaborators.length === 0) {
+      setCollaborators([
+        {
+          id: "collab_me",
+          name: user.artist_name || user.full_name || "Prince Nzassi",
+          phone: user.phone_number || "+242068001122",
+          role: "composer",
+          roleLabel: "Créateur Principal",
+          splitPercentage: 100,
+          avatarUrl: "👑",
+          isRegistered: true,
+        }
+      ]);
+    }
+  }, [user]);
+
+  // Calcul du total des splits
   const totalSplit = useMemo(() => {
     return collaborators.reduce((sum, c) => sum + (c.splitPercentage || 0), 0);
   }, [collaborators]);
 
-  // Analyse d'empreinte acoustique IA & Détection Binaire Anti-Plagiat (AudioContext + API Backend)
-  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Gestion du téléversement et décodage PCM AudioContext
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setUploadedFile(file);
       setIsAudioUploaded(true);
       setIsScanningAudio(true);
       setAudioFingerprintData(null);
       setError("");
 
       try {
-        // 1. Calcul du véritable hash cryptographique SHA-256 sur les octets bruts du fichier
         const arrayBuffer = await file.arrayBuffer();
         const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const realSha256 = "SHA256:" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
 
-        // 2. Décodage du signal audio réel via Web Audio API (Écoute des ondes et durée exacte)
-        let audioDuration = 0;
+        let audioDuration = 180;
         try {
           const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
           const decoded = await audioCtx.decodeAudioData(arrayBuffer.slice(0));
-          audioDuration = decoded.duration;
+          audioDuration = Math.round(decoded.duration);
+          setAudioDurationSeconds(audioDuration);
         } catch (e) {
-          // Fallback durée si format spécifique
           audioDuration = 180;
         }
 
-        // 3. Extraction des tags ID3 et inspection binaire
         const uint8 = new Uint8Array(arrayBuffer);
         const headerSlice = uint8.slice(0, Math.min(16384, uint8.length));
         const footerSlice = uint8.slice(Math.max(0, uint8.length - 2048));
@@ -150,7 +190,6 @@ export default function DeposerOeuvrePage() {
           }
         }
 
-        // 4. Appel RÉEL de l'API Backend d'Inspection Acoustique BCDA
         const inspectRes = await bcdaApi.inspectAudio({
           audio_fingerprint_hash: realSha256,
           duration_seconds: audioDuration,
@@ -181,8 +220,8 @@ export default function DeposerOeuvrePage() {
             originalityScore: 0,
             duplicateFound: true,
             fraudDetails: inspectRes.fraud_details || {
-              artist: "MC ONE",
-              title: "De Base",
+              artist: "Artiste Protégé",
+              title: "Œuvre Internationale Détectée",
               isrc: "CI-UMG-20-00142",
               label: "Universal Music Africa",
               registry: "Réseau Mondial CISAC",
@@ -200,93 +239,23 @@ export default function DeposerOeuvrePage() {
 
       } catch (err: any) {
         setIsScanningAudio(false);
-        setError("Erreur lors de l'analyse acoustique : " + (err.message || "Impossible de décoder le fichier audio."));
+        setError("Erreur lors de l'analyse acoustique : " + (err.message || "Impossible de décoder le fichier."));
       }
     }
   };
 
-  // Ajouter un collaborateur suggéré
-  const addCollaboratorFromSuggestion = (sug: typeof REGISTERED_COMMUNITY[0]) => {
-    if (collaborators.some(c => c.name.toLowerCase() === sug.name.toLowerCase())) {
-      setError(`${sug.name} est déjà dans la liste des ayants droit.`);
-      return;
+  // Gestion des rôles multiples
+  const toggleMyRole = (roleId: string) => {
+    if (myRoles.includes(roleId)) {
+      if (myRoles.length > 1) {
+        setMyRoles(myRoles.filter(r => r !== roleId));
+      }
+    } else {
+      setMyRoles([...myRoles, roleId]);
     }
-    const newCollab: Collaborator = {
-      id: "collab_" + Date.now(),
-      name: sug.name,
-      phone: sug.phone,
-      role: sug.role as any,
-      roleLabel: sug.roleLabel,
-      splitPercentage: 0,
-      avatarUrl: sug.avatar,
-      isRegistered: true,
-    };
-    setCollaborators([...collaborators, newCollab]);
-    setSearchQuery("");
-    setShowSearchDropdown(false);
-    setError("");
   };
 
-  // Ajouter un collaborateur manuel
-  const addCustomCollaborator = () => {
-    if (!customName.trim()) {
-      setError("Veuillez saisir le nom du collaborateur.");
-      return;
-    }
-    const roleLabels: Record<string, string> = {
-      author: "Auteur des Paroles ✍️",
-      composer: "Compositeur Mélodie 🎼",
-      beatmaker: "Beatmaker / Arrangeur 🎹",
-      performer: "Artiste-Interprète 🎤",
-      producer: "Producteur Phonographique 📀",
-      clip_director: "Réalisateur Vidéo 🎬",
-    };
-
-    const newCollab: Collaborator = {
-      id: "collab_" + Date.now(),
-      name: customName,
-      phone: customPhone || "+24206...",
-      role: customRole,
-      roleLabel: roleLabels[customRole] || "Collaborateur",
-      splitPercentage: 0,
-      avatarUrl: "👤",
-      isRegistered: false,
-    };
-
-    setCollaborators([...collaborators, newCollab]);
-    setCustomName("");
-    setCustomPhone("");
-    setError("");
-  };
-
-  // Mettre à jour la part d'un collaborateur
-  const updateSplit = (id: string, newSplit: number) => {
-    setCollaborators(collaborators.map(c => c.id === id ? { ...c, splitPercentage: newSplit } : c));
-  };
-
-  // Mettre à jour le rôle d'un collaborateur
-  const updateRole = (id: string, newRole: Collaborator["role"]) => {
-    const roleLabels: Record<string, string> = {
-      author: "Auteur des Paroles ✍️",
-      composer: "Compositeur Mélodie 🎼",
-      beatmaker: "Beatmaker / Arrangeur 🎹",
-      performer: "Artiste-Interprète 🎤",
-      producer: "Producteur Phonographique 📀",
-      clip_director: "Réalisateur Vidéo 🎬",
-    };
-    setCollaborators(collaborators.map(c => c.id === id ? { ...c, role: newRole, roleLabel: roleLabels[newRole] } : c));
-  };
-
-  // Supprimer un collaborateur
-  const removeCollaborator = (id: string) => {
-    if (collaborators.length <= 1) {
-      setError("Il doit y avoir au moins 1 ayant droit sur l'œuvre.");
-      return;
-    }
-    setCollaborators(collaborators.filter(c => c.id !== id));
-  };
-
-  // Répartir 100% de façon équitable en 1 clic
+  // Répartition égale des splits
   const handleEqualSplit = () => {
     const count = collaborators.length;
     if (count === 0) return;
@@ -299,22 +268,51 @@ export default function DeposerOeuvrePage() {
     })));
   };
 
-  // Soumission finale BCDA
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Ajout d'un collaborateur
+  const addCollaborator = (name: string, phone: string, role: Collaborator["role"]) => {
+    const roleLabels: Record<string, string> = {
+      author: "Auteur ✍️",
+      composer: "Compositeur 🎼",
+      beatmaker: "Arrangeur / Beatmaker 🎹",
+      adapter: "Adaptateur 🗣️",
+      performer: "Artiste-Interprète 🎤",
+      producer: "Producteur 📀",
+      clip_director: "Réalisateur Clip 🎬",
+      editor: "Éditeur 🏢",
+    };
+
+    const newCollab: Collaborator = {
+      id: "collab_" + Date.now(),
+      name,
+      phone,
+      role,
+      roleLabel: roleLabels[role] || "Co-créateur",
+      splitPercentage: 0,
+      avatarUrl: "👤",
+      isRegistered: false,
+    };
+
+    setCollaborators([...collaborators, newCollab]);
+    setCustomName("");
+    setCustomPhone("");
+    setSearchQuery("");
+    setShowSearchDropdown(false);
+  };
+
+  // Soumission finale
+  const handleSubmitFinal = async () => {
     if (!workTitle.trim()) {
-      setError("Veuillez renseigner le titre de l'œuvre.");
-      setStep(1);
+      setError("Veuillez renseigner le titre de votre création.");
+      setStep(3);
       return;
     }
     if (!certifyOwnership) {
-      setError("Vous devez certifier sur l'honneur détenir les droits sur ce morceau.");
-      setStep(1);
+      setError("Veuillez valider l'attestation de propriété légale.");
       return;
     }
-    if (totalSplit !== 100) {
-      setError(`Le total des parts de répartition doit être exactement égal à 100% (Actuellement : ${totalSplit}%).`);
-      setStep(2);
+    if (hasCoCreators && totalSplit !== 100) {
+      setError(`Le total des clés de répartition doit être exactement de 100% (Actuellement : ${totalSplit}%).`);
+      setStep(6);
       return;
     }
 
@@ -322,19 +320,15 @@ export default function DeposerOeuvrePage() {
     setError("");
 
     try {
-      // Trouver les ayants droit par rôle
-      const author = collaborators.find(c => c.role === "author");
-      const composer = collaborators.find(c => c.role === "composer" || c.role === "beatmaker");
-      const performer = collaborators.find(c => c.role === "performer");
-      const producer = collaborators.find(c => c.role === "producer");
-      const director = collaborators.find(c => c.role === "clip_director");
-
       const res = await bcdaApi.registerWork({
         work_title: workTitle,
         title: workTitle,
-        genre: workGenre,
-        creation_year: parseInt(creationYear) || 2026,
-        audio_fingerprint_file: "https://example.com/audio/master.wav",
+        subtitle: workSubtitle,
+        genre: workStyle,
+        work_type: workNature,
+        bpm: bpmTempo,
+        duration_seconds: audioDurationSeconds,
+        audio_fingerprint_hash: audioFingerprintData?.hash || `SHA256:${Date.now().toString(16).toUpperCase()}89BC12`,
         collaborators: collaborators,
         authors: collaborators.filter(c => c.role === 'author').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
         composers: collaborators.filter(c => c.role === 'composer' || c.role === 'beatmaker').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
@@ -343,22 +337,17 @@ export default function DeposerOeuvrePage() {
         music_video_directors: collaborators.filter(c => c.role === 'clip_director').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage }))
       });
 
-      if (audioFingerprintData?.hash) {
-        const currentHashes: string[] = JSON.parse(localStorage.getItem("moyo_submitted_audio_hashes") || "[]");
-        if (!currentHashes.includes(audioFingerprintData.hash)) {
-          currentHashes.push(audioFingerprintData.hash);
-          localStorage.setItem("moyo_submitted_audio_hashes", JSON.stringify(currentHashes));
-        }
-      }
-
       setRegisteredResult(res.work || {
         title: workTitle,
+        subtitle: workSubtitle,
+        genre: workStyle,
         iswc_code: "T-" + Math.floor(100 + Math.random() * 900) + "." + Math.floor(100 + Math.random() * 900) + "." + Math.floor(100 + Math.random() * 900) + "-C",
         isrc_code: "CG-B01-26-" + Math.floor(10000 + Math.random() * 90000),
         bcda_code: "BCDA-CG-2026-" + Math.floor(10000 + Math.random() * 90000),
-        fingerprint_hash: audioFingerprintData?.hash || "SHA256:4FA890BC12",
+        fingerprint_hash: audioFingerprintData?.hash || "SHA256:7B89A0C32E4",
       });
-      setStep(3);
+
+      setStep(8);
     } catch (err: any) {
       setError(err.message || "Erreur lors de l'immatriculation BCDA.");
     } finally {
@@ -366,259 +355,199 @@ export default function DeposerOeuvrePage() {
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in text-white">
-      
-      {/* Bouton Retour */}
-      <div>
-        <Link
-          href="/bcda"
-          className="inline-flex items-center space-x-2 text-xs text-slate-400 hover:text-white transition font-bold"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Retour à mon Espace BCDA</span>
-        </Link>
-      </div>
+  const stepsList = [
+    { num: 1, label: "Fichier" },
+    { num: 2, label: "Création" },
+    { num: 3, label: "Titre" },
+    { num: 4, label: "Styles" },
+    { num: 5, label: "Vos Rôles" },
+    { num: 6, label: "Co-créateurs" },
+    { num: 7, label: "Résumé" },
+    { num: 8, label: "Certificat !" },
+  ];
 
-      {/* En-tête BCDA Officiel */}
-      <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-semibold text-emerald-400 mb-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>République du Congo • Bureau Congolais du Droit d'Auteur (BCDA) 🇨🇬</span>
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in text-white">
+      
+      {/* Barre d'En-tête Style MusicStart & BCDA */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 border border-slate-800 p-5 sm:p-6 rounded-3xl shadow-2xl">
+        <div className="flex items-center space-x-3">
+          <Link href="/bcda" className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl transition text-slate-300">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xl font-black tracking-tight text-white">
+                MUSIC<span className="text-congo-yellow">START</span> <span className="text-congo-red">BCDA</span> 🇨🇬
+              </span>
+              <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold rounded-full">
+                Standard CISAC & SACEM
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">Portail officiel de protection d'œuvres, démos et attribution des codes ISWC & ISRC.</p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white">
-            Dépôt d'Œuvre & Gestion Dynamique des Splits
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Recherche instantanée de collaborateurs, jauge de répartition sur 100% et <strong>empreinte acoustique IA anti-plagiat</strong>.
-          </p>
         </div>
 
-        <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-congo-yellow border border-amber-500/30">
-          Standard SACEM & OAPI
-        </span>
+        <div className="flex items-center space-x-2">
+          <span className="text-xs font-mono text-congo-yellow bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+            Artiste : {user?.artist_name || user?.full_name || "Prince Nzassi"}
+          </span>
+        </div>
       </div>
 
-      {/* Indicateur d'étapes */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { num: 1, label: "Titre & Empreinte IA" },
-          { num: 2, label: "Collaborateurs & Splits" },
-          { num: 3, label: "Certificat BCDA Officiel" },
-        ].map((s) => (
-          <div
-            key={s.num}
-            className={`p-3.5 rounded-2xl border text-center transition ${
-              step === s.num
-                ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold shadow-lg"
-                : step > s.num
-                ? "bg-slate-900 border-slate-700 text-slate-200"
-                : "bg-slate-950 border-slate-800 text-slate-500"
-            }`}
-          >
-            <span className="text-[10px] block uppercase font-mono">Étape {s.num}</span>
-            <span className="text-xs font-semibold">{s.label}</span>
-          </div>
-        ))}
+      {/* Barre d'avancement des 8 Étapes (Format MusicStart Officiel) */}
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl overflow-x-auto">
+        <div className="flex items-center justify-between min-w-[700px]">
+          {stepsList.map((s, idx) => (
+            <div key={s.num} className="flex items-center space-x-2">
+              <div className="flex flex-col items-center">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition ${
+                  step === s.num
+                    ? "bg-congo-yellow text-slate-950 ring-4 ring-congo-yellow/20 shadow-lg scale-110"
+                    : step > s.num
+                    ? "bg-emerald-500 text-white"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                }`}>
+                  {step > s.num ? <Check className="w-4 h-4" /> : s.num}
+                </div>
+                <span className={`text-[11px] mt-1 font-semibold ${step === s.num ? "text-congo-yellow font-bold" : "text-slate-400"}`}>
+                  {s.label}
+                </span>
+              </div>
+              {idx < stepsList.length - 1 && (
+                <div className={`w-10 h-0.5 mb-4 ${step > s.num ? "bg-emerald-500" : "bg-slate-800"}`} />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
+
+      {/* Message d'erreur global */}
+      {error && (
+        <div className="p-4 bg-rose-950/60 border border-rose-500/60 rounded-2xl text-rose-300 text-xs flex items-center space-x-3 shadow-lg">
+          <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
+          <span>{error}</span>
+        </div>
+      )}
 
       {/* ========================================================================= */}
-      {/* ÉTAPE 1 : TITRE, AUDIO MASTER & VÉRIFICATION IA D'ORIGINALITÉ */}
+      {/* ÉTAPE 1 : CHOIX DU FICHIER À PROTÉGER (Audio vs Partitions/Textes) */}
       {/* ========================================================================= */}
       {step === 1 && (
-        <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6">
-          <h2 className="text-base font-bold text-white flex items-center space-x-2">
-            <Music className="w-5 h-5 text-emerald-400" />
-            <span>1. Identification & Preuve de Propriété (IA Fingerprinting)</span>
-          </h2>
-
-          <div className="space-y-4 text-xs">
-            <div>
-              <label className="text-slate-300 font-bold block mb-1.5">Titre de la Chanson / Musique *</label>
-              <input
-                type="text"
-                required
-                placeholder="Ex: Rumba du Fleuve Congo"
-                value={workTitle}
-                onChange={(e) => setWorkTitle(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm font-semibold focus:border-congo-yellow focus:ring-1 focus:ring-congo-yellow"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-slate-300 font-bold block mb-1.5">Genre Musical</label>
-                <select
-                  value={workGenre}
-                  onChange={(e) => setWorkGenre(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs font-medium focus:border-congo-yellow"
-                >
-                  <option value="Rumba Congolaise">Rumba Congolaise</option>
-                  <option value="Soukous / Ndombolo">Soukous / Ndombolo</option>
-                  <option value="Afrobeat Congo">Afrobeat Congo</option>
-                  <option value="Gospel Congolais">Gospel Congolais</option>
-                  <option value="Folklore & Traditionnel">Folklore & Traditionnel</option>
-                  <option value="Rap / Hip-Hop 242">Rap / Hip-Hop 242</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1.5">Année de Création</label>
-                <input
-                  type="number"
-                  value={creationYear}
-                  onChange={(e) => setCreationYear(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs font-medium focus:border-congo-yellow"
-                />
-              </div>
-            </div>
-
-            {/* Téléversement Audio & Analyse IA Multi-Registres */}
-            <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3">
-              <div className="flex justify-between items-start">
-                <label className="text-emerald-400 font-bold flex items-center space-x-2">
-                  <Upload className="w-4 h-4 text-emerald-400" />
-                  <span>Téléversement Audio Master (.WAV / .MP3) pour Empreinte Acoustique & Contrôle Mondial *</span>
-                </label>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">
-                  Réseau CISAC & Content ID
-                </span>
-              </div>
-
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                Afin d'éviter toute tentative de fraude ou d'appropriation d'un titre international non encore déposé au Congo, le fichier audio est scanné et comparé en temps réel contre les bases de données mondiales (<strong>CISAC mondial, Audible Magic, ACRCloud & YouTube Content ID — plus de 100 millions d'œuvres</strong>).
-              </p>
-              
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={handleAudioUpload}
-                className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500 cursor-pointer"
-              />
-
-              {/* État du scan IA */}
-              {isScanningAudio && (
-                <div className="p-4 bg-slate-900 rounded-xl border border-emerald-500/30 space-y-2 animate-pulse">
-                  <div className="flex items-center space-x-2 text-xs text-emerald-400 font-bold">
-                    <Cpu className="w-4 h-4 animate-spin text-emerald-400" />
-                    <span>Contrôle Croisé Multi-Registres en cours...</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-400 font-mono">
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">1. Scan Répertoire BCDA 🇨🇬</div>
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">2. Scan Registre Mondial CISAC 🌍</div>
-                    <div className="p-2 bg-slate-950 rounded border border-slate-800">3. Scan YouTube Content ID 🎵</div>
-                  </div>
-                </div>
-              )}
-
-              {audioFingerprintData && (
-                audioFingerprintData.duplicateFound ? (
-                  <div className="p-5 bg-rose-950/40 border-2 border-rose-500/80 rounded-2xl space-y-3 shadow-md animate-fade-in">
-                    <div className="flex justify-between items-start border-b border-rose-500/30 pb-2.5">
-                      <div className="flex items-center space-x-2 text-rose-300 font-black text-xs">
-                        <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
-                        <span>🚫 ALERTE FRAUDE INTERNATIONALE DÉTECTÉE (MATCH {audioFingerprintData.fraudDetails?.matchPercentage || 99}%)</span>
-                      </div>
-                      <span className="text-[10px] font-bold uppercase bg-rose-600 text-white px-2.5 py-0.5 rounded-full">
-                        Dépôt BCDA Bloqué
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-rose-200 font-medium leading-relaxed">
-                      {audioFingerprintData.fraudDetails?.reason}
-                    </p>
-
-                    {audioFingerprintData.fraudDetails && (
-                      <div className="p-3.5 bg-slate-900/90 border border-rose-500/30 rounded-xl space-y-1.5 text-xs text-slate-300">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Artiste Propriétaire Détecté :</span>
-                          <strong className="text-rose-400 font-bold">{audioFingerprintData.fraudDetails.artist}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Titre Identifié :</span>
-                          <strong className="text-white">{audioFingerprintData.fraudDetails.title}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Label / Distributeur :</span>
-                          <span className="text-slate-300">{audioFingerprintData.fraudDetails.label}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Code ISRC International :</span>
-                          <span className="font-mono text-rose-300 font-bold">{audioFingerprintData.fraudDetails.isrc}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Registre Source :</span>
-                          <span className="text-slate-300 font-semibold">{audioFingerprintData.fraudDetails.registry}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="text-[10px] text-rose-300 bg-rose-900/30 p-2.5 rounded-xl border border-rose-500/30">
-                      ⚖️ <strong>Mesure de Protection :</strong> Vous ne pouvez pas déposer ce morceau car il n'a pas été créé par vous. Pour continuer, veuillez téléverser un fichier audio original dont vous êtes l'auteur ou le compositeur.
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 bg-emerald-950/30 border border-emerald-500/50 rounded-2xl space-y-3 shadow-sm">
-                    <div className="flex justify-between items-center text-xs border-b border-emerald-500/20 pb-2">
-                      <span className="font-bold text-emerald-400 flex items-center space-x-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span>Rapport de Conformité : 100% Morceau Original & Inédit</span>
-                      </span>
-                      <span className="text-[10px] text-emerald-300 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                        Aucun Plagiat Détecté
-                      </span>
-                    </div>
-
-                    {/* 3 Niveaux de vérification validés */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px]">
-                      <div className="p-2 bg-slate-900/80 border border-emerald-500/30 rounded-xl space-y-0.5">
-                        <strong className="text-emerald-400 block">🇨🇬 BCDA National</strong>
-                        <span className="text-slate-400">0 doublon dans le répertoire</span>
-                      </div>
-                      <div className="p-2 bg-slate-900/80 border border-emerald-500/30 rounded-xl space-y-0.5">
-                        <strong className="text-emerald-400 block">🌍 Réseau CISAC Mondial</strong>
-                        <span className="text-slate-400">Aucune revendication étrangère</span>
-                      </div>
-                      <div className="p-2 bg-slate-900/80 border border-emerald-500/30 rounded-xl space-y-0.5">
-                        <strong className="text-emerald-400 block">🎵 YouTube Content ID</strong>
-                        <span className="text-slate-400">Empreinte audio unique</span>
-                      </div>
-                    </div>
-
-                    <div className="text-[10px] text-slate-400 font-mono bg-slate-950 p-2 rounded-lg break-all border border-slate-800">
-                      Preuve d'Antériorité Cryptographique : <strong className="text-congo-yellow">{audioFingerprintData.hash}</strong>
-                    </div>
-                  </div>
-                )
-              )}
-            </div>
-
-            {/* Attestation sur l'honneur de propriété & Responsabilité Pénale */}
-            <div className="p-4 bg-slate-950/90 border border-amber-500/30 rounded-2xl space-y-2">
-              <label className="flex items-start space-x-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={certifyOwnership}
-                  disabled={audioFingerprintData?.duplicateFound}
-                  onChange={(e) => setCertifyOwnership(e.target.checked)}
-                  className="w-4 h-4 rounded text-congo-yellow focus:ring-congo-yellow border-slate-700 bg-slate-900 mt-0.5 disabled:opacity-30"
-                />
-                <span className="text-xs text-slate-300 leading-snug">
-                  <strong className="text-congo-yellow">Attestation de Propriété Légale & Clause Anti-Fraude :</strong> Je certifie sur l'honneur être l'auteur/créateur original de cette création ou détenir les autorisations légales certifiées. Toute tentative de dépôt frauduleux d'une œuvre internationale ou locale est passible de sanctions pénales selon la législation sur la propriété littéraire et artistique en République du Congo.
-                </span>
-              </label>
-            </div>
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-8 text-center">
+          <div>
+            <h2 className="text-2xl font-black text-white">AJOUTER LE FICHIER À PROTÉGER</h2>
+            <p className="text-xs text-slate-400 mt-2">
+              Choisissez le type de support de votre création pour générer votre preuve d'antériorité cryptographique.
+            </p>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-slate-800">
+          {/* Deux Grosses Cartes Cliquables (Exactement comme MusicStart) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
             <button
               type="button"
-              disabled={!workTitle.trim() || !certifyOwnership || audioFingerprintData?.duplicateFound}
-              onClick={() => setStep(2)}
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={() => setFileCategory("text")}
+              className={`p-6 rounded-3xl border-2 transition text-center space-y-3 ${
+                fileCategory === "text"
+                  ? "bg-gradient-to-br from-pink-900/40 to-purple-900/40 border-pink-500 shadow-xl"
+                  : "bg-slate-950 border-slate-800 hover:border-slate-700"
+              }`}
             >
-              <span>Suivant : Ajouter Collaborateurs & Répartir les Splits</span>
+              <div className="w-14 h-14 rounded-2xl bg-pink-500/20 text-pink-400 flex items-center justify-center mx-auto text-2xl">
+                📄
+              </div>
+              <strong className="text-base font-bold text-white block">Partitions, paroles, textes</strong>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Textes de chanson, poèmes, partitions musicales en format PDF, TXT, DOCX ou PNG.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFileCategory("audio")}
+              className={`p-6 rounded-3xl border-2 transition text-center space-y-3 ${
+                fileCategory === "audio"
+                  ? "bg-gradient-to-br from-amber-900/40 to-congo-red/40 border-congo-yellow shadow-xl"
+                  : "bg-slate-950 border-slate-800 hover:border-slate-700"
+              }`}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-congo-yellow/20 text-congo-yellow flex items-center justify-center mx-auto text-2xl">
+                🎵
+              </div>
+              <strong className="text-base font-bold text-white block">Fichier Audio Master / Démo</strong>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Fichier audio au format MP3, WAV, OGG ou FLAC pour l'analyse spectrale et le scan mondial.
+              </p>
+            </button>
+          </div>
+
+          {/* Zone de Téléversement */}
+          <div className="p-8 bg-slate-950 border-2 border-dashed border-slate-800 hover:border-congo-yellow/50 rounded-3xl max-w-2xl mx-auto space-y-4">
+            <Upload className="w-10 h-10 text-congo-yellow mx-auto animate-bounce" />
+            <div>
+              <p className="text-sm font-bold text-white">Sélectionnez votre fichier {fileCategory === "audio" ? "audio (.MP3, .WAV)" : "document (.PDF, .TXT)"}</p>
+              <p className="text-[11px] text-slate-500 mt-1">Taille maximale : 100 Mo. Empreinte SHA-256 calculée en temps réel.</p>
+            </div>
+
+            <input
+              type="file"
+              accept={fileCategory === "audio" ? "audio/*" : ".pdf,.txt,.doc,.docx,image/*"}
+              onChange={handleFileUpload}
+              className="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-congo-yellow file:text-slate-950 hover:file:bg-amber-400 cursor-pointer"
+            />
+
+            {uploadedFile && (
+              <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 flex items-center justify-between">
+                <span>📁 {uploadedFile.name} ({(uploadedFile.size / (1024 * 1024)).toFixed(2)} Mo)</span>
+                <span className="text-congo-yellow font-mono text-[10px]">Durée: {Math.floor(audioDurationSeconds / 60)}m {audioDurationSeconds % 60}s</span>
+              </div>
+            )}
+
+            {/* État du scan IA */}
+            {isScanningAudio && (
+              <div className="p-4 bg-slate-900 border border-congo-yellow/30 rounded-2xl space-y-2 animate-pulse text-left">
+                <div className="flex items-center space-x-2 text-xs text-congo-yellow font-bold">
+                  <Cpu className="w-4 h-4 animate-spin text-congo-yellow" />
+                  <span>Scan multi-registres en cours (BCDA + CISAC Mondial + Content ID)...</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-400 font-mono">
+                  <div className="p-2 bg-slate-950 rounded border border-slate-800">1. Registre BCDA 🇨🇬</div>
+                  <div className="p-2 bg-slate-950 rounded border border-slate-800">2. Réseau CISAC 🌍</div>
+                  <div className="p-2 bg-slate-950 rounded border border-slate-800">3. YouTube Content ID 🎵</div>
+                </div>
+              </div>
+            )}
+
+            {/* Alerte Fraude / Succès */}
+            {audioFingerprintData && (
+              audioFingerprintData.duplicateFound ? (
+                <div className="p-4 bg-rose-950/60 border-2 border-rose-500 rounded-2xl text-left space-y-2 text-xs text-rose-200">
+                  <div className="flex items-center space-x-2 font-black text-rose-300">
+                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                    <span>🚫 DÉPÔT BLOQUÉ : ŒUVRE PROTÉGÉE DÉTECTÉE</span>
+                  </div>
+                  <p>{audioFingerprintData.fraudDetails?.reason}</p>
+                </div>
+              ) : (
+                <div className="p-4 bg-emerald-950/40 border border-emerald-500/50 rounded-2xl text-left space-y-2 text-xs text-emerald-300">
+                  <div className="flex items-center space-x-2 font-bold text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>100% Inédit & Conforme : Aucune correspondance étrangère trouvée.</span>
+                  </div>
+                  <p className="text-[10px] font-mono text-slate-400 break-all">Hash: {audioFingerprintData.hash}</p>
+                </div>
+              )
+            )}
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <button
+              type="button"
+              disabled={!uploadedFile || audioFingerprintData?.duplicateFound || isScanningAudio}
+              onClick={() => setStep(2)}
+              className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2 shadow-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <span>Suivant : Définir la Création</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -626,227 +555,628 @@ export default function DeposerOeuvrePage() {
       )}
 
       {/* ========================================================================= */}
-      {/* ÉTAPE 2 : RECHERCHE DYNAMIQUE & GESTION DES COLLABORATEURS (SPLITS) */}
+      {/* ÉTAPE 2 : DÉFINIR LA CRÉATION (Nouvelle vs Existante & Chant vs Instrumental) */}
       {/* ========================================================================= */}
       {step === 2 && (
-        <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6">
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-8">
+          <div>
+            <h2 className="text-2xl font-black text-white">DÉFINIR LA CRÉATION</h2>
+            <p className="text-xs text-slate-400 mt-1">Précisez la nature de votre œuvre pour les registres BCDA & SACEM.</p>
+          </div>
+
+          <div className="space-y-6 text-xs">
+            {/* Rattachement */}
             <div>
-              <h2 className="text-base font-bold text-white flex items-center space-x-2">
-                <Users className="w-5 h-5 text-congo-yellow" />
-                <span>2. Collaborateurs & Partage des Gains (Splits)</span>
-              </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Recherchez des artistes ou ajoutez des collaborateurs avec leur rôle et leur pourcentage.
-              </p>
-            </div>
+              <label className="text-slate-300 font-bold block mb-2">Voulez-vous rattacher ce fichier à :</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setCreationNature("new")}
+                  className={`p-4 rounded-2xl border text-left transition ${
+                    creationNature === "new" ? "bg-congo-yellow/10 border-congo-yellow text-white" : "bg-slate-950 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <strong className="text-sm block font-bold text-white mb-1">✨ Une nouvelle création</strong>
+                  <span>Cette œuvre n'a jamais été enregistrée auparavant.</span>
+                </button>
 
-            {/* Jauge des 100% & Bouton Split Égal */}
-            <div className="flex items-center space-x-2">
-              <button
-                type="button"
-                onClick={handleEqualSplit}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1 transition border border-slate-700"
-                title="Diviser équitablement entre tous les ayants droit"
-              >
-                <Scale className="w-3.5 h-3.5 text-congo-yellow" />
-                <span>Split Égal ⚖️</span>
-              </button>
-
-              <span className={`px-3 py-1.5 rounded-xl text-xs font-black ${
-                totalSplit === 100
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                  : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
-              }`}>
-                Total : {totalSplit} % / 100%
-              </span>
-            </div>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-rose-950/40 border border-rose-500/40 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* 🔍 BARRE DE RECHERCHE DE COLLABORATEUR DANS LA COMMUNAUTÉ */}
-          <div className="relative">
-            <label className="text-xs font-bold text-slate-300 block mb-1.5">
-              Rechercher un Artiste ou Collaborateur sur Moyo Culture :
-            </label>
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
-              <input
-                type="text"
-                placeholder="Tapez un nom d'artiste, compositeur, réalisateur..."
-                value={searchQuery}
-                onFocus={() => setShowSearchDropdown(true)}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchDropdown(true);
-                }}
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-congo-yellow"
-              />
-            </div>
-
-            {/* Menu Déroulant des Suggestions */}
-            {showSearchDropdown && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-20 max-h-56 overflow-y-auto divide-y divide-slate-800">
-                {REGISTERED_COMMUNITY.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((sug, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => addCollaboratorFromSuggestion(sug)}
-                    className="w-full p-3 text-left hover:bg-slate-800/80 flex items-center justify-between text-xs transition"
-                  >
-                    <div className="flex items-center space-x-2.5">
-                      <span className="text-base">{sug.avatar}</span>
-                      <div>
-                        <strong className="text-white block">{sug.name}</strong>
-                        <span className="text-[10px] text-slate-400">{sug.roleLabel} • MoMo: {sug.phone}</span>
-                      </div>
-                    </div>
-                    <span className="text-congo-yellow font-bold text-xs">+ Ajouter</span>
-                  </button>
-                ))}
+                <button
+                  type="button"
+                  onClick={() => setCreationNature("existing")}
+                  className={`p-4 rounded-2xl border text-left transition ${
+                    creationNature === "existing" ? "bg-congo-yellow/10 border-congo-yellow text-white" : "bg-slate-950 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <strong className="text-sm block font-bold text-white mb-1">🔗 Une création existante</strong>
+                  <span>Ajouter une version (Acoustique, Remix, Démo) à un titre déjà déposé.</span>
+                </button>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* 📋 LISTE DES CARTES COLLABORATEURS AJOUTÉS */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold text-slate-300 block">
-              Ayants Droit Inscrits sur cette Œuvre ({collaborators.length}) :
-            </label>
+            {/* Nature de l'œuvre (Chant / Instrumental / Texte) */}
+            <div>
+              <label className="text-slate-300 font-bold block mb-2">Genre de l'œuvre musicale :</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setWorkNature("chant")}
+                  className={`p-4 rounded-2xl border text-center transition ${
+                    workNature === "chant" ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold" : "bg-slate-950 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <span className="text-2xl block mb-1">🎤</span>
+                  <span>Œuvre Chantée (avec Paroles)</span>
+                </button>
 
-            {collaborators.map((collab) => (
-              <div
-                key={collab.id}
-                className="p-4 bg-slate-950 border border-slate-800/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-md hover:border-slate-700 transition"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg">
-                    {collab.avatarUrl || "👤"}
-                  </div>
-                  <div>
-                    <strong className="text-white text-sm block font-bold">{collab.name}</strong>
-                    <span className="text-[10px] text-slate-400 font-mono">MoMo : {collab.phone}</span>
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setWorkNature("instrumental")}
+                  className={`p-4 rounded-2xl border text-center transition ${
+                    workNature === "instrumental" ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold" : "bg-slate-950 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <span className="text-2xl block mb-1">🎹</span>
+                  <span>Œuvre Instrumentale (Beat / Prod)</span>
+                </button>
 
-                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                  {/* Sélecteur de rôle */}
-                  <select
-                    value={collab.role}
-                    onChange={(e) => updateRole(collab.id, e.target.value as any)}
-                    className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-semibold focus:border-congo-yellow"
-                  >
-                    <option value="author">Auteur (Paroles) ✍️</option>
-                    <option value="composer">Compositeur (Musique) 🎼</option>
-                    <option value="beatmaker">Beatmaker / Arrangeur 🎹</option>
-                    <option value="performer">Artiste-Interprète 🎤</option>
-                    <option value="producer">Producteur (Master) 📀</option>
-                    <option value="clip_director">Réalisateur Clip 🎬</option>
-                  </select>
-
-                  {/* Saisie de la part en % */}
-                  <div className="flex items-center space-x-1">
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={collab.splitPercentage}
-                      onChange={(e) => updateSplit(collab.id, parseFloat(e.target.value) || 0)}
-                      className="w-16 px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-center font-black text-congo-yellow text-sm focus:border-congo-yellow"
-                    />
-                    <span className="font-bold text-slate-400">%</span>
-                  </div>
-
-                  {/* Bouton Supprimer */}
-                  <button
-                    type="button"
-                    onClick={() => removeCollaborator(collab.id)}
-                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition"
-                    title="Retirer ce collaborateur"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setWorkNature("texte")}
+                  className={`p-4 rounded-2xl border text-center transition ${
+                    workNature === "texte" ? "bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold" : "bg-slate-950 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <span className="text-2xl block mb-1">✍️</span>
+                  <span>Texte / Poème seul</span>
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* ➕ AJOUT MANUEL D'UN COLLABORATEUR EXTERNE */}
-          <div className="p-4 bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl space-y-3">
-            <span className="text-xs font-bold text-slate-300 block flex items-center space-x-1.5">
-              <UserPlus className="w-4 h-4 text-emerald-400" />
-              <span>Ajouter manuellement un collaborateur non listé :</span>
-            </span>
-
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
-              <input
-                type="text"
-                placeholder="Nom complet ou Pseudo"
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
-                className="sm:col-span-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:border-congo-yellow"
-              />
-              <input
-                type="tel"
-                placeholder="N° Mobile Money (+242...)"
-                value={customPhone}
-                onChange={(e) => setCustomPhone(e.target.value)}
-                className="sm:col-span-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white focus:border-congo-yellow"
-              />
+            {/* Statut de l'œuvre */}
+            <div>
+              <label className="text-slate-300 font-bold block mb-2">Statut légal d'édition :</label>
               <select
-                value={customRole}
-                onChange={(e) => setCustomRole(e.target.value as any)}
-                className="sm:col-span-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-medium focus:border-congo-yellow"
+                value={workStatus}
+                onChange={(e) => setWorkStatus(e.target.value as any)}
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-xl text-white focus:border-congo-yellow"
               >
-                <option value="author">Auteur (Paroles) ✍️</option>
-                <option value="composer">Compositeur (Musique) 🎼</option>
-                <option value="beatmaker">Beatmaker / Arrangeur 🎹</option>
-                <option value="performer">Artiste-Interprète 🎤</option>
-                <option value="producer">Producteur (Master) 📀</option>
-                <option value="clip_director">Réalisateur Clip 🎬</option>
+                <option value="inedite">Inédite (Œuvre sans éditeur - Artiste Indépendant)</option>
+                <option value="editee">Éditée (Sous contrat d'édition avec un Label)</option>
+                <option value="demo">Démo Provisoire (Protection temporaire MusicStart BCDA)</option>
               </select>
-              <button
-                type="button"
-                onClick={addCustomCollaborator}
-                className="sm:col-span-1 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition border border-slate-700"
-              >
-                + Ajouter à la Liste
-              </button>
             </div>
-          </div>
-
-          <div className="p-4 bg-slate-950 border border-amber-500/30 rounded-2xl text-[11px] text-slate-300 flex items-start space-x-2">
-            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-congo-yellow" />
-            <span>
-              <strong className="text-congo-yellow">Séquestre BCDA d'Attente :</strong> Dès qu'une redevance est collectée (TV, radios, streaming ou discothèques), chaque ayant droit reçoit automatiquement sa part sur son numéro Mobile Money. Si un numéro n'est pas encore inscrit sur Moyo Culture, ses gains restent sous séquestre sécurisé au BCDA jusqu'à son retrait.
-            </span>
           </div>
 
           <div className="flex justify-between pt-4 border-t border-slate-800">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
+              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
             >
-              Précédent
+              Retour
             </button>
             <button
               type="button"
-              disabled={isSubmitting || totalSplit !== 100}
-              onClick={handleSubmit}
-              className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-lg transition disabled:opacity-50 flex items-center space-x-2"
+              onClick={() => setStep(3)}
+              className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2"
+            >
+              <span>Suivant : Renseigner le Titre</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ÉTAPE 3 : TITRE DE LA CRÉATION */}
+      {/* ========================================================================= */}
+      {step === 3 && (
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-8 text-center max-w-2xl mx-auto">
+          <div>
+            <h2 className="text-2xl font-black text-white">QUEL EST LE TITRE DE VOTRE CRÉATION ?</h2>
+            <p className="text-xs text-slate-400 mt-1">Indiquez le nom exact tel qu'il apparaîtra sur votre certificat BCDA.</p>
+          </div>
+
+          <div className="space-y-4 text-left text-xs">
+            <div>
+              <label className="text-slate-300 font-bold block mb-1.5">Titre Principal *</label>
+              <input
+                type="text"
+                placeholder="Ex: Danse du Fleuve Congo"
+                value={workTitle}
+                onChange={(e) => setWorkTitle(e.target.value)}
+                className="w-full px-4 py-3.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-base font-bold focus:border-congo-yellow focus:ring-1 focus:ring-congo-yellow text-center"
+              />
+            </div>
+
+            <div>
+              <label className="text-slate-400 font-semibold block mb-1.5">Sous-titre ou Version éventuelle (Optionnel)</label>
+              <input
+                type="text"
+                placeholder="Ex: Version Acoustic / Radio Edit"
+                value={workSubtitle}
+                onChange={(e) => setWorkSubtitle(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-slate-300 text-xs text-center"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+            >
+              Retour
+            </button>
+            <button
+              type="button"
+              disabled={!workTitle.trim()}
+              onClick={() => setStep(4)}
+              className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2 disabled:opacity-40"
+            >
+              <span>Confirmer le Titre</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ÉTAPE 4 : STYLES MUSICAUX (Grille Colorée comme MusicStart) */}
+      {/* ========================================================================= */}
+      {step === 4 && (
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-black text-white">QUEL EST LE STYLE DE VOTRE CRÉATION ?</h2>
+            <p className="text-xs text-slate-400 mt-1">Sélectionnez le genre principal pour la catégorisation BCDA.</p>
+          </div>
+
+          {/* Grille de cartes de styles colorées */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {MUSIC_STYLES.map((st) => (
+              <button
+                key={st.id}
+                type="button"
+                onClick={() => setWorkStyle(st.name)}
+                className={`p-4 rounded-2xl border text-center transition flex flex-col items-center justify-center min-h-[90px] ${
+                  workStyle === st.name
+                    ? `bg-gradient-to-br ${st.color} text-white font-bold ring-2 ring-congo-yellow shadow-xl scale-105`
+                    : `${st.bg} text-slate-300`
+                }`}
+              >
+                <span className="text-xs font-bold">{st.name}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Données Techniques complémentaires (Tempo BPM & Origine) */}
+          <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label className="text-slate-300 font-bold block mb-1.5">Tempo / Métronome (BPM)</label>
+              <input
+                type="number"
+                placeholder="Ex: 125 BPM"
+                value={bpmTempo}
+                onChange={(e) => setBpmTempo(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="text-slate-300 font-bold block mb-1.5">Pays d'Origine de l'Œuvre</label>
+              <input
+                type="text"
+                value={originCountry}
+                onChange={(e) => setOriginCountry(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+            >
+              Retour
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep(5)}
+              className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2"
+            >
+              <span>Suivant : Vos Rôles</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ÉTAPE 5 : VOS RÔLES SUR CETTE CRÉATION (Choix Multiples avec Cartes) */}
+      {/* ========================================================================= */}
+      {step === 5 && (
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-black text-white">QUEL EST VOTRE RÔLE SUR CETTE CRÉATION ?</h2>
+            <p className="text-xs text-slate-400 mt-1">(Plusieurs choix possibles selon vos contributions réelles)</p>
+          </div>
+
+          {/* Grille de cartes de rôles cliquables */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            {ROLE_OPTIONS.map((r) => {
+              const isSelected = myRoles.includes(r.id);
+              return (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => toggleMyRole(r.id)}
+                  className={`p-5 rounded-2xl border-2 text-left transition relative ${
+                    isSelected
+                      ? "bg-congo-red/20 border-congo-red text-white shadow-lg scale-102"
+                      : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <strong className="text-sm font-bold text-white">{r.name}</strong>
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${isSelected ? "bg-congo-red text-white" : "bg-slate-800 text-slate-500"}`}>
+                      {isSelected ? "✓" : "+"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-snug">{r.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setStep(4)}
+              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+            >
+              Retour
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep(6)}
+              className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2"
+            >
+              <span>Continuer : Co-créateurs</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ÉTAPE 6 : CO-CRÉATEURS (NON / OUI & Gestion des Splits 100%) */}
+      {/* ========================================================================= */}
+      {step === 6 && (
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-8">
+          
+          {hasCoCreators === null && (
+            <div className="text-center space-y-8 max-w-xl mx-auto py-8">
+              <h2 className="text-2xl font-black text-white uppercase">Avez-vous des co-créateurs ?</h2>
+              <p className="text-xs text-slate-400">
+                Y a-t-il d'autres musiciens, beatmakers, paroliers ou producteurs qui détiennent une part des droits sur ce morceau ?
+              </p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHasCoCreators(false);
+                    setCollaborators([{
+                      id: "collab_me",
+                      name: user?.artist_name || user?.full_name || "Prince Nzassi",
+                      phone: user?.phone_number || "+242068001122",
+                      role: "composer",
+                      roleLabel: "Créateur Unique (100%)",
+                      splitPercentage: 100,
+                      avatarUrl: "👑",
+                      isRegistered: true,
+                    }]);
+                    setStep(7);
+                  }}
+                  className="py-4 bg-congo-red hover:bg-red-700 text-white font-black rounded-2xl text-sm transition shadow-lg"
+                >
+                  NON (Je suis seul)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setHasCoCreators(true)}
+                  className="py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl text-sm transition shadow-lg"
+                >
+                  OUI (Ajouter)
+                </button>
+              </div>
+
+              <div className="flex justify-start">
+                <button
+                  type="button"
+                  onClick={() => setStep(5)}
+                  className="px-6 py-2.5 bg-slate-800 text-slate-400 rounded-xl text-xs"
+                >
+                  Retour
+                </button>
+              </div>
+            </div>
+          )}
+
+          {hasCoCreators === true && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+                    <Users className="w-5 h-5 text-congo-yellow" />
+                    <span>Répartition des Gains & Clés Phono (Splits)</span>
+                  </h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Le total des parts de tous les co-créateurs doit être exactement égal à 100%.
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={handleEqualSplit}
+                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center space-x-1 border border-slate-700"
+                  >
+                    <Scale className="w-3.5 h-3.5 text-congo-yellow" />
+                    <span>Split Égal ⚖️</span>
+                  </button>
+
+                  <span className={`px-3 py-1.5 rounded-xl text-xs font-black ${
+                    totalSplit === 100
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                  }`}>
+                    Total : {totalSplit} % / 100%
+                  </span>
+                </div>
+              </div>
+
+              {/* 🔍 Recherche intelligente dans la communauté */}
+              <div className="relative">
+                <label className="text-xs font-bold text-slate-300 block mb-1.5">Rechercher un artiste sur Moyo Culture :</label>
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    placeholder="Tapez un nom (DJ Brazza Beat, Mavoungou...)"
+                    value={searchQuery}
+                    onFocus={() => setShowSearchDropdown(true)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchDropdown(true);
+                    }}
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:border-congo-yellow"
+                  />
+                </div>
+
+                {showSearchDropdown && (
+                  <div className="absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-20 max-h-52 overflow-y-auto divide-y divide-slate-800">
+                    {REGISTERED_COMMUNITY.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase())).map((sug, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => addCollaborator(sug.name, sug.phone, sug.role as any)}
+                        className="w-full p-3 text-left hover:bg-slate-800 flex items-center justify-between text-xs transition"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>{sug.avatar}</span>
+                          <div>
+                            <strong className="text-white block">{sug.name}</strong>
+                            <span className="text-[10px] text-slate-400">{sug.roleLabel} • MoMo: {sug.phone}</span>
+                          </div>
+                        </div>
+                        <span className="text-congo-yellow font-bold">+ Ajouter</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 📋 Cartes des Collaborateurs */}
+              <div className="space-y-3">
+                {collaborators.map((collab) => (
+                  <div
+                    key={collab.id}
+                    className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-lg">
+                        {collab.avatarUrl || "👤"}
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm block font-bold">{collab.name}</strong>
+                        <span className="text-[10px] text-slate-400 font-mono">MoMo : {collab.phone}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={collab.role}
+                        onChange={(e) => {
+                          setCollaborators(collaborators.map(c => c.id === collab.id ? { ...c, role: e.target.value as any } : c));
+                        }}
+                        className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-semibold"
+                      >
+                        <option value="composer">Compositeur 🎼</option>
+                        <option value="author">Auteur ✍️</option>
+                        <option value="beatmaker">Beatmaker 🎹</option>
+                        <option value="performer">Interprète 🎤</option>
+                        <option value="producer">Producteur 📀</option>
+                        <option value="clip_director">Réalisateur 🎬</option>
+                      </select>
+
+                      <div className="flex items-center space-x-1">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={collab.splitPercentage}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setCollaborators(collaborators.map(c => c.id === collab.id ? { ...c, splitPercentage: val } : c));
+                          }}
+                          className="w-16 px-2.5 py-2 bg-slate-900 border border-slate-800 rounded-xl text-center font-black text-congo-yellow text-sm"
+                        />
+                        <span className="font-bold text-slate-400">%</span>
+                      </div>
+
+                      {collaborators.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setCollaborators(collaborators.filter(c => c.id !== collab.id))}
+                          className="p-2 text-slate-500 hover:text-rose-400"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Ajout manuel */}
+              <div className="p-4 bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
+                <input
+                  type="text"
+                  placeholder="Nom ou Pseudo"
+                  value={customName}
+                  onChange={(e) => setCustomName(e.target.value)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white"
+                />
+                <input
+                  type="tel"
+                  placeholder="N° MoMo (+242...)"
+                  value={customPhone}
+                  onChange={(e) => setCustomPhone(e.target.value)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white"
+                />
+                <select
+                  value={customRole}
+                  onChange={(e) => setCustomRole(e.target.value as any)}
+                  className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white"
+                >
+                  <option value="composer">Compositeur 🎼</option>
+                  <option value="author">Auteur ✍️</option>
+                  <option value="beatmaker">Beatmaker 🎹</option>
+                  <option value="performer">Interprète 🎤</option>
+                  <option value="producer">Producteur 📀</option>
+                  <option value="clip_director">Réalisateur 🎬</option>
+                </select>
+                <button
+                  type="button"
+                  onClick={() => addCollaborator(customName, customPhone, customRole)}
+                  className="py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs"
+                >
+                  + Ajouter
+                </button>
+              </div>
+
+              <div className="flex justify-between pt-4 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setHasCoCreators(null)}
+                  className="px-6 py-3 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold"
+                >
+                  Retour
+                </button>
+                <button
+                  type="button"
+                  disabled={totalSplit !== 100}
+                  onClick={() => setStep(7)}
+                  className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2 disabled:opacity-40"
+                >
+                  <span>Suivant : Résumé & Signature</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* ÉTAPE 7 : RÉSUMÉ DE LA CRÉATION & SIGNATURE ÉLECTRONIQUE */}
+      {/* ========================================================================= */}
+      {step === 7 && (
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-10 rounded-3xl shadow-2xl space-y-6">
+          <div className="border-b border-slate-800 pb-4">
+            <h2 className="text-2xl font-black text-white">RÉSUMÉ DE VOTRE ENREGISTREMENT</h2>
+            <p className="text-xs text-slate-400 mt-1">Vérifiez toutes les informations avant la signature électronique certifiée.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+            <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+              <strong className="text-congo-yellow block font-bold text-sm">🎵 Détails de l'Œuvre :</strong>
+              <div className="space-y-2 text-slate-300">
+                <div className="flex justify-between"><span className="text-slate-500">Titre :</span><strong className="text-white">{workTitle} {workSubtitle && `(${workSubtitle})`}</strong></div>
+                <div className="flex justify-between"><span className="text-slate-500">Genre :</span><span>{workStyle}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Nature :</span><span>{workNature === "chant" ? "Œuvre Chantée" : "Instrumental"}</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Tempo / BPM :</span><span>{bpmTempo} BPM</span></div>
+                <div className="flex justify-between"><span className="text-slate-500">Durée Master :</span><span>{Math.floor(audioDurationSeconds / 60)}m {audioDurationSeconds % 60}s</span></div>
+              </div>
+            </div>
+
+            <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+              <strong className="text-emerald-400 block font-bold text-sm">⚖️ Ayants Droit & Clés de Répartition :</strong>
+              <div className="space-y-2 text-slate-300">
+                {collaborators.map((c, i) => (
+                  <div key={i} className="flex justify-between items-center border-b border-slate-800/60 pb-1.5">
+                    <span>{c.name} ({c.role})</span>
+                    <strong className="text-congo-yellow font-black">{c.splitPercentage} %</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Preuve d'Antériorité SHA-256 */}
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl space-y-1 font-mono text-[11px]">
+            <span className="text-slate-500 block">Preuve d'Antériorité Cryptographique (MusicStart BCDA) :</span>
+            <strong className="text-congo-yellow break-all">{audioFingerprintData?.hash || "SHA256:7B89A0C32E4DF819"}</strong>
+          </div>
+
+          {/* Clause Anti-Fraude & Signature */}
+          <div className="p-5 bg-slate-950 border border-amber-500/30 rounded-2xl space-y-3 text-xs">
+            <label className="flex items-start space-x-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={certifyOwnership}
+                onChange={(e) => setCertifyOwnership(e.target.checked)}
+                className="w-4 h-4 rounded text-congo-yellow focus:ring-congo-yellow border-slate-700 bg-slate-900 mt-0.5"
+              />
+              <span className="text-slate-300 leading-relaxed">
+                <strong className="text-congo-yellow">Attestation de Propriété Légale :</strong> Je certifie sur l'honneur être l'auteur/créateur original de cette création et autorise le BCDA à enregistrer cette œuvre pour la perception et la répartition des droits d'auteur.
+              </span>
+            </label>
+          </div>
+
+          <div className="flex justify-between pt-4 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={() => setStep(6)}
+              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold"
+            >
+              Retour
+            </button>
+            <button
+              type="button"
+              disabled={!certifyOwnership || isSubmitting}
+              onClick={handleSubmitFinal}
+              className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs shadow-xl transition disabled:opacity-40 flex items-center space-x-2"
             >
               {isSubmitting ? (
                 <span>Immatriculation BCDA en cours...</span>
               ) : (
-                <span>Valider le Dépôt & Obtenir les Certificats BCDA 🏛️</span>
+                <span>Confirmer la Demande de Protection & Signer 🏛️</span>
               )}
             </button>
           </div>
@@ -854,29 +1184,34 @@ export default function DeposerOeuvrePage() {
       )}
 
       {/* ========================================================================= */}
-      {/* ÉTAPE 3 : CONFIRMATION & CERTIFICAT OFFICIEL BCDA */}
+      {/* ÉTAPE 8 : FÉLICITATIONS & CERTIFICAT OFFICIEL BCDA AVEC QR CODE */}
       {/* ========================================================================= */}
-      {step === 3 && registeredResult && (
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl text-center space-y-6">
-          <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-8 h-8" />
+      {step === 8 && registeredResult && (
+        <div className="bg-slate-900 border border-slate-800 p-8 sm:p-12 rounded-3xl shadow-2xl text-center space-y-8 max-w-2xl mx-auto">
+          
+          <div className="w-20 h-20 bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/40 rounded-full flex items-center justify-center mx-auto text-3xl shadow-xl animate-pulse">
+            ✓
           </div>
 
           <div>
-            <h2 className="text-2xl font-black text-white">Œuvre Immatriculée au BCDA !</h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Votre œuvre <strong>"{registeredResult.title}"</strong> a été enregistrée avec succès au Répertoire National.
+            <span className="px-3 py-1 bg-congo-red/20 text-congo-red border border-congo-red/30 rounded-full text-xs font-bold uppercase tracking-wider">
+              Enregistrement Officiel BCDA 🇨🇬
+            </span>
+            <h2 className="text-3xl font-black text-white mt-3">FÉLICITATIONS !</h2>
+            <p className="text-sm text-slate-300 mt-1">
+              Votre création musicale <strong>"{registeredResult.title}"</strong> a bien été enregistrée et protégée au Répertoire National !
             </p>
           </div>
 
-          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-left space-y-3 text-xs font-mono max-w-md mx-auto">
+          {/* Récépissé Certifié */}
+          <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 text-left space-y-3.5 text-xs font-mono">
             <div className="flex justify-between border-b border-slate-800 pb-2">
               <span className="text-slate-400">Code ISWC (Droit d'Auteur) :</span>
-              <strong className="text-white font-bold">{registeredResult.iswc_code || "T-304.891.188-K"}</strong>
+              <strong className="text-white font-bold">{registeredResult.iswc_code}</strong>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
               <span className="text-slate-400">Code ISRC National :</span>
-              <strong className="text-emerald-400 font-bold">{registeredResult.isrc_code || "CG-B01-26-00349"}</strong>
+              <strong className="text-emerald-400 font-bold">{registeredResult.isrc_code}</strong>
             </div>
             <div className="flex justify-between border-b border-slate-800 pb-2">
               <span className="text-slate-400">N° Certificat BCDA :</span>
@@ -884,17 +1219,23 @@ export default function DeposerOeuvrePage() {
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Preuve d'Antériorité :</span>
-              <span className="text-[10px] text-slate-300 truncate max-w-[200px]">{registeredResult.fingerprint_hash}</span>
+              <span className="text-[10px] text-slate-300 truncate max-w-[220px]">{registeredResult.fingerprint_hash}</span>
             </div>
           </div>
 
-          <div className="flex justify-center gap-3">
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
               href="/bcda"
-              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg"
+              className="px-8 py-3.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition shadow-lg"
             >
-              Voir mon Répertoire BCDA
+              Voir mon Répertoire BCDA 🏛️
             </Link>
+            <button
+              onClick={() => window.print()}
+              className="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition border border-slate-700"
+            >
+              Imprimer le Certificat 🖨️
+            </button>
           </div>
         </div>
       )}
