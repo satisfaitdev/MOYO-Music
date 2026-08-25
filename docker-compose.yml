@@ -30,7 +30,8 @@ services:
       JWT_SECRET: supersecret_congo_art_music_2026_jwt_token_key
       CINETPAY_API_KEY: mock_cinetpay_key_cg
       CINETPAY_SITE_ID: mock_site_id_cg
-      FRONTEND_URL: http://localhost:3000
+      FRONTEND_URL: http://localhost:3001
+      KIBANGOUPAY_BASE_URL: http://host.docker.internal:3000
     ports:
       - "4000:4000"
     volumes:
@@ -52,8 +53,9 @@ services:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:4000/api
       WATCHPACK_POLLING: "true"
+      PORT: 3000
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
