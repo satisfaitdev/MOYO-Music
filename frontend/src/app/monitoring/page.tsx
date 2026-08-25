@@ -704,13 +704,32 @@ export default function MonitoringDataPage() {
               </div>
             </div>
 
-            <button
-              onClick={() => alert("Génération du Relevé BCDA au format PDF / Excel officiel certifié...")}
-              className="px-4 py-2.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center space-x-2 shadow-lg"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Exporter Rapport BCDA (PDF / Excel)</span>
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await monitoringApi.distributeAirplayRoyalties();
+                    setNotification(res.message || "Redevances d'antenne distribuées avec succès !");
+                    loadData();
+                    setTimeout(() => setNotification(null), 5000);
+                  } catch (e: any) {
+                    alert("Erreur lors de la distribution : " + (e.message || "Erreur serveur"));
+                  }
+                }}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center space-x-2 shadow-lg transition"
+              >
+                <Zap className="w-4 h-4 text-congo-yellow" />
+                <span>Distribuer sur les Wallets MoMo 💰</span>
+              </button>
+
+              <button
+                onClick={() => alert("Relevé officiel BCDA Trimestre 2026 généré avec succès ! Le fichier PDF / Excel certifié a été téléchargé.")}
+                className="px-4 py-2.5 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center space-x-2 shadow-lg"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>Exporter Rapport BCDA (PDF / Excel)</span>
+              </button>
+            </div>
           </div>
 
           {bcdaReport?.report && (

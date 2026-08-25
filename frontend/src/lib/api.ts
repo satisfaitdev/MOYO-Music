@@ -116,6 +116,7 @@ export const monitoringApi = {
   getArtistAirplay: () => apiRequest('/monitoring/artist-airplay', { method: 'GET' }),
   simulateDetection: (payload?: any) => apiRequest('/monitoring/simulate-detection', { method: 'POST', body: JSON.stringify(payload || {}) }),
   getBcdaReport: () => apiRequest('/monitoring/bcda-report', { method: 'GET' }),
+  distributeAirplayRoyalties: () => apiRequest('/monitoring/distribute-airplay-royalties', { method: 'POST' }),
 };
 
 // ==========================================

@@ -395,4 +395,62 @@ router.get('/bcda-report', async (req: Request, res: Response) => {
   }
 });
 
+// DISTRIBUER LES REDEVANCES D'ANTENNE BCDA VERS LES WALLETS ARTISTES (ADMIN OU CLÔTURE TRIMESTRIELLE)
+router.post('/distribute-airplay-royalties', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    // 1. Récupérer toutes les détections en attente de paiement
+    const pendingDetections = await query(`
+      SELECT a.id, a.artist_id, a.track_title, a.artist_name, a.estimated_royalty_fcfa, s.name as station_name
+      FROM airplay_detections a
+      JOIN media_stations s ON a.station_id = s.id
+      WHERE a.bcda_status = 'PENDING_COLLECTION'
+    `);
+
+    if (pendingDetections.rows.length === 0) {
+      return res.json({ message: "Toutes les redevances d'antenne ont déjà été distribuées aux artistes !", distributed_count: 0 });
+    }
+
+    let totalDistributed = 0;
+    const artistTotals: Record<string, number> = {};
+
+    for (const d of pendingDetections.rows) {
+      const amount = parseFloat(d.estimated_royalty_fcfa);
+      totalDistributed += amount;
+      artistTotals[d.artist_id] = (artistTotals[d.artist_id] || 0) + amount;
+    }
+
+    // 2. Créditer chaque artiste sur son wallet
+    for (const [artistId, amount] of Object.entries(artistTotals)) {
+      await query(`
+        UPDATE users
+        SET wallet_balance_fcfa = wallet_balance_fcfa + $1
+        WHERE id = $2
+      `, [amount, artistId]);
+
+      await query(`
+        INSERT INTO transactions (
+          user_id, transaction_type, amount_fcfa, payment_method, phone_used, external_reference, status
+        ) VALUES ($1, 'bcda_airplay_royalty', $2, 'BCDA_AIRPLAY_IA', 'COMPTE_BCDA', $3, 'SUCCESS')
+      `, [artistId, amount, `BCDA-AIRPLAY-${Date.now()}`]);
+    }
+
+    // 3. Mettre à jour le statut des détections
+    await query(`
+      UPDATE airplay_detections
+      SET bcda_status = 'PAID_TO_ARTIST'
+      WHERE bcda_status = 'PENDING_COLLECTION'
+    `);
+
+    return res.json({
+      success: true,
+      message: `Distribution BCDA réussie : ${totalDistributed.toLocaleString()} FCFA répartis sur les portefeuilles de ${Object.keys(artistTotals).length} artiste(s) !`,
+      total_fcfa_distributed: totalDistributed,
+      total_detections_processed: pendingDetections.rows.length,
+      artists_credited_count: Object.keys(artistTotals).length
+    });
+  } catch (error: any) {
+    return res.status(500).json({ error: 'Erreur lors de la distribution BCDA', details: error.message });
+  }
+});
+
 export default router;
