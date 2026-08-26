@@ -718,52 +718,7 @@ export default function BcdaPortalPage() {
             </div>
           </div>
 
-          {/* 4 Métriques de collecte */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-center text-sky-400">
-                <Globe className="w-4 h-4" />
-                <span className="text-[10px] text-slate-500 uppercase font-mono">1. The MLC (USA)</span>
-              </div>
-              <strong className="text-xl font-black text-white block">
-                {(pubAnalytics?.streams_revenue_breakdown?.mechanical_dSPs_the_mlc || 0).toLocaleString('fr-FR')} FCFA
-              </strong>
-              <p className="text-[10px] text-slate-400">Droits d'auteur Spotify/Apple prélevés à la source</p>
-            </div>
 
-            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-center text-congo-yellow">
-                <Radio className="w-4 h-4" />
-                <span className="text-[10px] text-slate-500 uppercase font-mono">2. Exécution Publique</span>
-              </div>
-              <strong className="text-xl font-black text-congo-yellow block">
-                {(pubAnalytics?.streams_revenue_breakdown?.public_performance_cisac_bcda || 0).toLocaleString('fr-FR')} FCFA
-              </strong>
-              <p className="text-[10px] text-slate-400">Passages TV, radios FM & concerts</p>
-            </div>
-
-            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-center text-rose-400">
-                <Youtube className="w-4 h-4" />
-                <span className="text-[10px] text-slate-500 uppercase font-mono">3. Content ID & TikTok</span>
-              </div>
-              <strong className="text-xl font-black text-rose-400 block">
-                {(pubAnalytics?.streams_revenue_breakdown?.youtube_content_id_tiktok || 0).toLocaleString('fr-FR')} FCFA
-              </strong>
-              <p className="text-[10px] text-slate-400">Monétisation des vidéos créées par des tiers</p>
-            </div>
-
-            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-center text-emerald-400">
-                <Coins className="w-4 h-4" />
-                <span className="text-[10px] text-slate-500 uppercase font-mono">4. Droits Voisins</span>
-              </div>
-              <strong className="text-xl font-black text-emerald-400 block">
-                {(pubAnalytics?.streams_revenue_breakdown?.neighboring_soundexchange || 0).toLocaleString('fr-FR')} FCFA
-              </strong>
-              <p className="text-[10px] text-slate-400">Web-radios numériques (SoundExchange)</p>
-            </div>
-          </div>
 
           {/* Tableau des morceaux administrés */}
           <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4">

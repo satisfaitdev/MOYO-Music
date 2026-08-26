@@ -26,7 +26,8 @@ import {
   Coins,
   Send,
   Eye,
-  FileText
+  FileText,
+  Zap
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { monitoringApi, bcdaApi, ticketingApi, marketplaceApi, publishingApi, walletApi } from "@/lib/api";

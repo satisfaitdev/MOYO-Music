@@ -172,22 +172,10 @@ export default function DashboardSidebar() {
                   className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
                     pathname === "/bcda" || pathname === "/bcda/deposer" ? "bg-amber-950 text-congo-yellow border border-amber-800/60 font-bold" : "text-slate-400 hover:text-white hover:bg-slate-900"
                   } ${isCollapsed ? "justify-center px-2" : ""}`}
-                  title="Dépôt d'Œuvre & Splits BCDA (ISWC)"
+                  title="Droit d'Auteur, Dépôt d'Œuvres & Import DistroKid"
                 >
                   <ShieldCheck className="w-4 h-4 flex-shrink-0 text-congo-yellow" />
-                  {!isCollapsed && <span>Droit d'Auteur BCDA</span>}
-                </Link>
-
-                {/* Moyo Publishing 360° */}
-                <Link
-                  href="/publishing"
-                  className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                    pathname.startsWith("/publishing") ? "bg-indigo-950 text-indigo-300 border border-indigo-800/60 font-bold" : "text-slate-400 hover:text-white hover:bg-slate-900"
-                  } ${isCollapsed ? "justify-center px-2" : ""}`}
-                  title="Administration d'Édition (The MLC / DistroKid / TuneCore)"
-                >
-                  <Globe className="w-4 h-4 flex-shrink-0 text-indigo-400" />
-                  {!isCollapsed && <span>Moyo Publishing (360°)</span>}
+                  {!isCollapsed && <span>Droit d'Auteur & BCDA</span>}
                 </Link>
 
                 {/* Airplay Monitoring IA */}
