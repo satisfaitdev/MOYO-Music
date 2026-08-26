@@ -5,6 +5,7 @@ import Link from "next/link";
 import { 
   ShieldCheck, 
   ArrowLeft, 
+  ArrowRight, 
   HelpCircle, 
   CheckCircle2, 
   Coins, 
