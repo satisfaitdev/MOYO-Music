@@ -23,7 +23,8 @@ import {
   ChevronUp,
   Sparkles,
   Sun,
-  Moon
+  Moon,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme-context";
