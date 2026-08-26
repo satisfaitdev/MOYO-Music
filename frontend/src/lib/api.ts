@@ -132,3 +132,14 @@ export const bcdaApi = {
   renewLicense: (data: any) => apiRequest('/bcda/licenses/renew', { method: 'POST', body: JSON.stringify(data) }),
   distributeRoyalties: (data: any) => apiRequest('/bcda/royalties/distribute', { method: 'POST', body: JSON.stringify(data) }),
 };
+
+// ==========================================
+// 9. MOYO PUBLISHING ADMINISTRATION (360° DROITS MONDIAUX)
+// ==========================================
+export const publishingApi = {
+  getCatalog: () => apiRequest('/publishing/catalog', { method: 'GET' }),
+  getAnalytics: () => apiRequest('/publishing/analytics', { method: 'GET' }),
+  importIsrc: (data: any) => apiRequest('/publishing/import', { method: 'POST', body: JSON.stringify(data) }),
+  syncToWallet: () => apiRequest('/publishing/sync-to-wallet', { method: 'POST' }),
+};
+

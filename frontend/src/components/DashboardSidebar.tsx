@@ -189,6 +189,17 @@ export default function DashboardSidebar() {
                   <Sparkles className="w-4 h-4 flex-shrink-0 text-congo-yellow" />
                   {!isCollapsed && <span>Services 360° Artiste</span>}
                 </Link>
+
+                <Link
+                  href="/publishing"
+                  className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                    pathname.startsWith("/publishing") ? "bg-indigo-950 text-indigo-300 border border-indigo-800/60 font-bold" : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  } ${isCollapsed ? "justify-center px-2" : ""}`}
+                  title="Moyo Publishing Administration (Récupération 360° DistroKid/TuneCore)"
+                >
+                  <Globe className="w-4 h-4 flex-shrink-0 text-indigo-400" />
+                  {!isCollapsed && <span>Moyo Publishing (360°)</span>}
+                </Link>
               </div>
             )}
           </div>
@@ -211,12 +222,23 @@ export default function DashboardSidebar() {
               <Link
                 href="/bcda"
                 className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
-                  pathname === "/bcda" ? "bg-amber-950 text-congo-yellow border border-amber-800/60" : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  pathname === "/bcda" || pathname === "/bcda/deposer" ? "bg-amber-950 text-congo-yellow border border-amber-800/60 font-bold" : "text-slate-400 hover:text-white hover:bg-slate-900"
                 } ${isCollapsed ? "justify-center px-2" : ""}`}
                 title="Gérer mes Œuvres Déposées & Mes Splits"
               >
                 <ShieldCheck className="w-4 h-4 flex-shrink-0 text-congo-yellow" />
                 {!isCollapsed && <span>Mes Œuvres & Splits BCDA</span>}
+              </Link>
+
+              <Link
+                href="/bcda/guide"
+                className={`flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition ${
+                  pathname === "/bcda/guide" ? "bg-amber-950 text-congo-yellow border border-amber-800/60 font-bold" : "text-slate-400 hover:text-white hover:bg-slate-900"
+                } ${isCollapsed ? "justify-center px-2" : ""}`}
+                title="Guide & FAQ Droit d'Auteur"
+              >
+                <FileText className="w-4 h-4 flex-shrink-0 text-congo-yellow" />
+                {!isCollapsed && <span>Guide & FAQ SACEM/BCDA</span>}
               </Link>
             </div>
           )}

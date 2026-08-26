@@ -13,6 +13,7 @@ import paymentsRoutes from './modules/payments/payments.controller';
 import walletRoutes from './modules/wallet/wallet.controller';
 import monitoringRoutes from './modules/monitoring/monitoring.controller';
 import bcdaRoutes from './modules/bcda/bcda.controller';
+import publishingRoutes from './modules/publishing/publishing.controller';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use('/api/payments', paymentsRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/bcda', bcdaRoutes);
+app.use('/api/publishing', publishingRoutes);
 
 // Health Check & Documentation
 app.get('/api/health', (req: Request, res: Response) => {
