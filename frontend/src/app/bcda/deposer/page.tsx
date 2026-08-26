@@ -6,6 +6,7 @@ import {
   ShieldCheck, 
   ArrowLeft, 
   ArrowRight, 
+  HelpCircle,
   Upload, 
   Users, 
   FileText, 
