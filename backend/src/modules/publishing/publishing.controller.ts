@@ -37,7 +37,7 @@ ensurePublishingTable().catch(console.error);
 router.get('/catalog', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     await ensurePublishingTable();
-    const userId = req.user?.userId;
+    const userId = req.user?.id || (req.user as any)?.userId;
 
     const result = await query(
       `SELECT * FROM publishing_catalog WHERE user_id = $1 OR $2 = 'admin' ORDER BY created_at DESC`,
@@ -58,7 +58,7 @@ router.get('/catalog', authenticateToken, async (req: AuthRequest, res: Response
 router.get('/analytics', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     await ensurePublishingTable();
-    const userId = req.user?.userId;
+    const userId = req.user?.id || (req.user as any)?.userId;
 
     const result = await query(
       `SELECT 
@@ -106,7 +106,7 @@ router.get('/analytics', authenticateToken, async (req: AuthRequest, res: Respon
 router.post('/import', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     await ensurePublishingTable();
-    const userId = req.user?.userId;
+    const userId = req.user?.id || (req.user as any)?.userId;
     const { 
       isrc_code, 
       track_title, 
@@ -197,7 +197,7 @@ router.post('/import', authenticateToken, async (req: AuthRequest, res: Response
 // 4. SYNCHRONISER ET TRANSFÉRER LES REVENUS VERS LE WALLET DE L'ARTISTE
 router.post('/sync-to-wallet', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.userId;
+    const userId = req.user?.id || (req.user as any)?.userId;
     if (!userId) return res.status(401).json({ error: 'Non authentifié' });
 
     // Calcul du total des sommes non réclamées

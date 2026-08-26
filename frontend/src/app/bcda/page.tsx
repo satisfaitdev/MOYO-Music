@@ -28,9 +28,16 @@ import {
   Users,
   UserPlus,
   Trash2,
-  Check
+  Check,
+  Globe,
+  ArrowRight,
+  AlertCircle,
+  Coins,
+  Radio,
+  Youtube,
+  Building2
 } from "lucide-react";
-import { bcdaApi } from "@/lib/api";
+import { bcdaApi, publishingApi } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import AuthModal from "@/components/AuthModal";
 
@@ -46,9 +53,20 @@ export default function BcdaPortalPage() {
   const [stats, setStats] = useState<any>(null);
   const [works, setWorks] = useState<any[]>([]);
   const [licenses, setLicenses] = useState<any[]>([]);
+  const [pubCatalog, setPubCatalog] = useState<any[]>([]);
+  const [pubAnalytics, setPubAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"works" | "licenses">("works");
+  const [activeTab, setActiveTab] = useState<"works" | "licenses" | "publishing">("works");
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Formulaire d'Importation ISRC Publishing
+  const [isPubImportOpen, setIsPubImportOpen] = useState(false);
+  const [pubIsrc, setPubIsrc] = useState("");
+  const [pubTitle, setPubTitle] = useState("");
+  const [pubArtist, setPubArtist] = useState(user?.artist_name || user?.full_name || "");
+  const [pubDistributor, setPubDistributor] = useState("DistroKid");
+  const [isSubmittingPub, setIsSubmittingPub] = useState(false);
+  const [pubError, setPubError] = useState("");
 
   // Moteurs de recherche
   const [searchWorks, setSearchWorks] = useState("");
@@ -124,15 +142,19 @@ export default function BcdaPortalPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [stData, wkData, licData] = await Promise.all([
+      const [stData, wkData, licData, pCat, pAna] = await Promise.all([
         bcdaApi.getStats().catch(() => null),
         bcdaApi.getWorks().catch(() => ({ works: [] })),
         bcdaApi.getLicenses().catch(() => ({ licenses: [] })),
+        publishingApi.getCatalog().catch(() => ({ catalog: [] })),
+        publishingApi.getAnalytics().catch(() => ({ stats: null })),
       ]);
 
       setStats(stData);
       setWorks(wkData.works || []);
       setLicenses(licData.licenses || []);
+      setPubCatalog(pCat.catalog || []);
+      setPubAnalytics(pAna.stats || null);
       if (wkData.works && wkData.works.length > 0 && !selectedWorkId) {
         setSelectedWorkId(wkData.works[0].id);
       }
@@ -442,7 +464,7 @@ export default function BcdaPortalPage() {
         </div>
       )}
 
-      {/* Navigation Onglets (Filtrée : Les artistes ne gèrent que leurs œuvres) */}
+      {/* Navigation Onglets Unifiée BCDA & Publishing */}
       <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab("works")}
@@ -451,7 +473,17 @@ export default function BcdaPortalPage() {
           }`}
         >
           <Music className="w-4 h-4" />
-          <span>{isArtist && !isBcdaAgent ? `Mes Œuvres Musicales & Clips (${filteredWorks.length})` : `Répertoire National des Œuvres (${filteredWorks.length})`}</span>
+          <span>{isArtist && !isBcdaAgent ? `Mes Œuvres Déposées (${filteredWorks.length})` : `Répertoire National des Œuvres (${filteredWorks.length})`}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("publishing" as any)}
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
+            activeTab === ("publishing" as any) ? "bg-indigo-600 text-white shadow-lg font-black" : "bg-slate-900 text-slate-400 hover:text-white"
+          }`}
+        >
+          <Globe className="w-4 h-4 text-indigo-400" />
+          <span>Import DistroKid / TuneCore (Droits Mondiaux The MLC)</span>
         </button>
 
         {isBcdaAgent && (
@@ -657,7 +689,281 @@ export default function BcdaPortalPage() {
         </div>
       )}
 
-      {/* 2. ONGLET : VIGNETTES TRANSPORTS AVEC RENOUVELLEMENT 1 CLIC */}
+      {/* 2. ONGLET : IMPORT DISTROKID / TUNECORE & DROITS MONDIAUX (PUBLISHING) */}
+      {activeTab === "publishing" && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Bannière explicative */}
+          <div className="bg-gradient-to-r from-indigo-950/40 via-slate-900 to-slate-900 border border-slate-800 p-6 rounded-3xl space-y-4 shadow-xl">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-[10px] font-bold text-indigo-400">
+                  <Globe className="w-3.5 h-3.5" />
+                  <span>Administration Mondiale d'Édition (The MLC / CISAC / BCDA)</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  Récupérez les 15% à 20% de Droits d'Auteur sur DistroKid & TuneCore
+                </h2>
+                <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                  DistroKid et TuneCore ne réclament pas vos droits d'auteur sur Spotify/Apple Music aux USA et dans le monde. Entrez votre code ISRC existant : Moyo génère votre code ISWC mondial et dépose la réclamation auprès de <strong>The MLC</strong> et du <strong>BCDA</strong> !
+                </p>
+              </div>
+
+              <button
+                onClick={() => setIsPubImportOpen(true)}
+                className="px-5 py-3 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-xs transition shadow-xl flex items-center space-x-2 flex-shrink-0"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>+ Rattacher un ISRC</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Métriques de collecte */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
+              <div className="flex justify-between items-center text-sky-400">
+                <Globe className="w-4 h-4" />
+                <span className="text-[10px] text-slate-500 uppercase font-mono">1. The MLC (USA)</span>
+              </div>
+              <strong className="text-xl font-black text-white block">
+                {(pubAnalytics?.streams_revenue_breakdown?.mechanical_dSPs_the_mlc || 0).toLocaleString('fr-FR')} FCFA
+              </strong>
+              <p className="text-[10px] text-slate-400">Droits d'auteur Spotify/Apple prélevés à la source</p>
+            </div>
+
+            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
+              <div className="flex justify-between items-center text-congo-yellow">
+                <Radio className="w-4 h-4" />
+                <span className="text-[10px] text-slate-500 uppercase font-mono">2. Exécution Publique</span>
+              </div>
+              <strong className="text-xl font-black text-congo-yellow block">
+                {(pubAnalytics?.streams_revenue_breakdown?.public_performance_cisac_bcda || 0).toLocaleString('fr-FR')} FCFA
+              </strong>
+              <p className="text-[10px] text-slate-400">Passages TV, radios FM & concerts</p>
+            </div>
+
+            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
+              <div className="flex justify-between items-center text-rose-400">
+                <Youtube className="w-4 h-4" />
+                <span className="text-[10px] text-slate-500 uppercase font-mono">3. Content ID & TikTok</span>
+              </div>
+              <strong className="text-xl font-black text-rose-400 block">
+                {(pubAnalytics?.streams_revenue_breakdown?.youtube_content_id_tiktok || 0).toLocaleString('fr-FR')} FCFA
+              </strong>
+              <p className="text-[10px] text-slate-400">Monétisation des vidéos créées par des tiers</p>
+            </div>
+
+            <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl space-y-2 shadow-lg">
+              <div className="flex justify-between items-center text-emerald-400">
+                <Coins className="w-4 h-4" />
+                <span className="text-[10px] text-slate-500 uppercase font-mono">4. Droits Voisins</span>
+              </div>
+              <strong className="text-xl font-black text-emerald-400 block">
+                {(pubAnalytics?.streams_revenue_breakdown?.neighboring_soundexchange || 0).toLocaleString('fr-FR')} FCFA
+              </strong>
+              <p className="text-[10px] text-slate-400">Web-radios numériques (SoundExchange)</p>
+            </div>
+          </div>
+
+          {/* Tableau des morceaux administrés */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div>
+                <h3 className="text-sm font-black text-white flex items-center space-x-2">
+                  <Building2 className="w-4 h-4 text-indigo-400" />
+                  <span>Morceaux Administrés ({pubCatalog.length})</span>
+                </h3>
+                <p className="text-[11px] text-slate-400">Titres rattachés via leur ISRC DistroKid/TuneCore.</p>
+              </div>
+
+              <button
+                onClick={() => setIsPubImportOpen(true)}
+                className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-700"
+              >
+                + Ajouter
+              </button>
+            </div>
+
+            {pubCatalog.length === 0 ? (
+              <div className="p-8 text-center space-y-3">
+                <Globe className="w-10 h-10 text-slate-600 mx-auto" />
+                <p className="text-xs text-slate-400">Aucun morceau DistroKid/TuneCore rattaché pour le moment.</p>
+                <button
+                  onClick={() => setIsPubImportOpen(true)}
+                  className="px-4 py-2 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs"
+                >
+                  Rattacher mon premier ISRC 🚀
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-950 text-slate-400 font-bold border-b border-slate-800">
+                    <tr>
+                      <th className="p-3">Titre & Artiste</th>
+                      <th className="p-3">Distributeur Source</th>
+                      <th className="p-3">Codes Internationaux</th>
+                      <th className="p-3 text-center">Streams Trackés</th>
+                      <th className="p-3 text-center">Droits Collectés</th>
+                      <th className="p-3 text-center">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800">
+                    {pubCatalog.map((t) => (
+                      <tr key={t.id} className="hover:bg-slate-800/40">
+                        <td className="p-3">
+                          <strong className="text-white block">{t.track_title}</strong>
+                          <span className="text-[10px] text-slate-400">{t.artist_name}</span>
+                        </td>
+                        <td className="p-3">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">
+                            {t.original_distributor || "DistroKid"}
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono text-[10px]">
+                          <div><span className="text-slate-500">ISRC:</span> {t.isrc_code}</div>
+                          <div className="text-congo-yellow"><span className="text-slate-500">ISWC:</span> {t.iswc_code}</div>
+                        </td>
+                        <td className="p-3 text-center font-mono text-slate-300 font-bold">
+                          {(t.total_streams_tracked || 0).toLocaleString('fr-FR')}
+                        </td>
+                        <td className="p-3 text-center text-congo-yellow font-bold">
+                          {parseFloat(t.total_collected_fcfa || 0).toLocaleString('fr-FR')} FCFA
+                        </td>
+                        <td className="p-3 text-center">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+                            ● Collecte Active (The MLC)
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL POPUP : IMPORTER UN ISRC DIRECTEMENT DANS BCDA */}
+      {isPubImportOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl text-white">
+            <div className="flex justify-between items-start border-b border-slate-800 pb-3">
+              <div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                  Administration Mondiale d'Édition
+                </span>
+                <h3 className="text-xl font-black text-white mt-1">Rattacher un Code ISRC</h3>
+                <p className="text-xs text-slate-400">Récupérez vos droits d'auteur mondiaux The MLC et BCDA.</p>
+              </div>
+              <button onClick={() => setIsPubImportOpen(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            {pubError && (
+              <div className="p-3 bg-rose-950/60 border border-rose-500 text-rose-300 rounded-xl text-xs flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{pubError}</span>
+              </div>
+            )}
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsSubmittingPub(true);
+                setPubError("");
+                try {
+                  const res = await publishingApi.importIsrc({
+                    isrc_code: pubIsrc,
+                    track_title: pubTitle,
+                    artist_name: pubArtist,
+                    original_distributor: pubDistributor
+                  });
+                  setNotification(`🎉 Morceau "${pubTitle || pubIsrc}" rattaché avec succès ! Code ISWC : ${res.iswc_code}`);
+                  setIsPubImportOpen(false);
+                  setPubIsrc("");
+                  setPubTitle("");
+                  loadData();
+                } catch (err: any) {
+                  setPubError(err.message || "Erreur lors du rattachement de l'ISRC.");
+                } finally {
+                  setIsSubmittingPub(false);
+                }
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Distributeur Digital d'Origine *</label>
+                <select
+                  value={pubDistributor}
+                  onChange={(e) => setPubDistributor(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white"
+                >
+                  <option value="DistroKid">DistroKid 📦</option>
+                  <option value="TuneCore">TuneCore 🎵</option>
+                  <option value="CD Baby">CD Baby 💿</option>
+                  <option value="Believe">Believe / Backstage 🏢</option>
+                  <option value="Autre">Autre Distributeur</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Code ISRC du Morceau *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: QZ-DA4-24-00123"
+                  value={pubIsrc}
+                  onChange={(e) => setPubIsrc(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Titre du Morceau *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Rumba du Fleuve"
+                  value={pubTitle}
+                  onChange={(e) => setPubTitle(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Nom d'Artiste / Auteur *</label>
+                <input
+                  type="text"
+                  required
+                  value={pubArtist}
+                  onChange={(e) => setPubArtist(e.target.value)}
+                  className="w-full px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsPubImportOpen(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-400 rounded-xl"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingPub}
+                  className="px-6 py-2 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl"
+                >
+                  {isSubmittingPub ? "Rattachement..." : "Activer la Collecte Mondiale 🚀"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 3. ONGLET : VIGNETTES TRANSPORTS AVEC RENOUVELLEMENT 1 CLIC */}
       {activeTab === "licenses" && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
