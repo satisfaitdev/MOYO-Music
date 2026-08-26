@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { query } from '../../database/initDb';
+import { query } from '../../database/db';
 import { authenticateToken, AuthRequest } from '../../modules/auth/auth.middleware';
 
 const router = Router();

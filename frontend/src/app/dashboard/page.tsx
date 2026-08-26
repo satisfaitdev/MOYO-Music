@@ -10,81 +10,117 @@ import {
   Wallet, 
   Ticket, 
   PlusCircle, 
-  ScanLine, 
   Palette, 
-  DollarSign, 
+  Globe,
   Sparkles, 
   TrendingUp, 
   Award, 
-  Car, 
-  Play, 
   ArrowRight, 
   Users, 
   CheckCircle2, 
   Clock, 
   Calendar,
   AlertCircle,
-  FileCheck,
+  Building2,
+  Tv,
+  Coins,
   Send,
-  Eye
+  Eye,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { monitoringApi, bcdaApi, ticketingApi, marketplaceApi } from "@/lib/api";
+import { monitoringApi, bcdaApi, ticketingApi, marketplaceApi, publishingApi, walletApi } from "@/lib/api";
 
-export default function DashboardPage() {
+export default function UnifiedWorkspaceDashboard() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
 
   const [artistStats, setArtistStats] = useState<any>(null);
   const [bcdaStats, setBcdaStats] = useState<any>(null);
+  const [pubStats, setPubStats] = useState<any>(null);
+  const [walletSummary, setWalletSummary] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [artworks, setArtworks] = useState<any[]>([]);
   const [recentDetections, setRecentDetections] = useState<any[]>([]);
+
+  // Retrait express MoMo
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawPhone, setWithdrawPhone] = useState(user?.momo_number || user?.phone_number || "");
+  const [withdrawOperator, setWithdrawOperator] = useState("MTN");
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [withdrawNotification, setWithdrawNotification] = useState<string | null>(null);
+
+  const loadAllData = async () => {
+    try {
+      if (user?.role === "artist" || user?.role === "admin") {
+        const [airplay, stData, pData, wData] = await Promise.all([
+          monitoringApi.getArtistAirplay().catch(() => ({ stats: null })),
+          bcdaApi.getStats().catch(() => null),
+          publishingApi.getAnalytics().catch(() => ({ stats: null })),
+          walletApi.getSummary().catch(() => null),
+        ]);
+        setArtistStats(airplay.stats);
+        setBcdaStats(stData);
+        setPubStats(pData.stats);
+        setWalletSummary(wData);
+      } else if (user?.role === "organizer") {
+        const res = await ticketingApi.getEvents().catch(() => ({ events: [] }));
+        setEvents(res.events || []);
+      } else if (user?.role === "painter") {
+        const res = await marketplaceApi.getMyArtworks().catch(() => ({ artworks: [] }));
+        setArtworks(res.artworks || []);
+      } else if (user?.role === "bcda_agent") {
+        const [stData, feed] = await Promise.all([
+          bcdaApi.getStats().catch(() => null),
+          monitoringApi.getLiveFeed().catch(() => ({ detections: [] })),
+        ]);
+        setBcdaStats(stData);
+        setRecentDetections(feed.detections || []);
+      }
+    } catch (err) {
+      console.error("Erreur chargement dashboard unifié :", err);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
       router.push("/");
       return;
     }
-
-    const loadRoleData = async () => {
-      try {
-        if (user?.role === "artist") {
-          const [airplay, stData] = await Promise.all([
-            monitoringApi.getArtistAirplay().catch(() => ({ stats: null })),
-            bcdaApi.getStats().catch(() => null),
-          ]);
-          setArtistStats(airplay.stats);
-          setBcdaStats(stData);
-        } else if (user?.role === "organizer") {
-          const res = await ticketingApi.getEvents().catch(() => ({ events: [] }));
-          setEvents(res.events || []);
-        } else if (user?.role === "painter") {
-          const res = await marketplaceApi.getMyArtworks().catch(() => ({ artworks: [] }));
-          setArtworks(res.artworks || []);
-        } else if (user?.role === "bcda_agent" || user?.role === "admin") {
-          const [stData, feed] = await Promise.all([
-            bcdaApi.getStats().catch(() => null),
-            monitoringApi.getLiveFeed().catch(() => ({ detections: [] })),
-          ]);
-          setBcdaStats(stData);
-          setRecentDetections(feed.detections || []);
-        }
-      } catch (err) {
-        console.error("Erreur chargement dashboard", err);
-      }
-    };
-
     if (user) {
-      loadRoleData();
+      loadAllData();
     }
   }, [user, isLoading]);
+
+  const handleWithdrawSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(withdrawAmount);
+    if (!amt || amt <= 0) return;
+
+    setIsWithdrawing(true);
+    try {
+      const res = await walletApi.withdraw({
+        amount_fcfa: amt,
+        phone_number: withdrawPhone,
+        operator: withdrawOperator
+      });
+      setWithdrawNotification(`✅ Retrait de ${amt.toLocaleString('fr-FR')} FCFA initié avec succès vers ${withdrawPhone} (${withdrawOperator}) !`);
+      setIsWithdrawModalOpen(false);
+      setWithdrawAmount("");
+      loadAllData();
+    } catch (err: any) {
+      alert(err.message || "Erreur lors du retrait Mobile Money.");
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
 
   if (isLoading || !user) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center text-slate-400 text-xs">
         <div className="w-8 h-8 border-4 border-congo-yellow border-t-transparent rounded-full animate-spin mr-3"></div>
-        <span>Chargement de votre Espace de Travail...</span>
+        <span>Chargement de votre Espace de Travail Unifié...</span>
       </div>
     );
   }
@@ -92,343 +128,364 @@ export default function DashboardPage() {
   const role = user.role;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in text-white">
       
-      {/* 1. EN-TÊTE BIENVENUE DU TABLEAU DE BORD */}
-      <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-xl relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-2">
-          <div className="flex items-center space-x-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-            <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-              Session Active 🇨🇬
-            </span>
+      {/* 1. EN-TÊTE BIENVENUE & SOLDE WALLET CENTRALISÉ */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-bold text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Espace Professionnel Sécurisé 🇨🇬</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-white">
-            Bonjour, <span className="text-congo-yellow">{user.artist_name || user.full_name}</span>
+            Bonjour, <span className="text-congo-yellow">{user.artist_name || user.full_name}</span> 👋
           </h1>
-          <p className="text-xs text-slate-400 max-w-xl">
-            {role === "artist" && "Gérez vos sorties musicales, surveillez vos diffusions radios/TV en direct et suivez vos redevances BCDA."}
-            {role === "organizer" && "Pilotez vos concerts, suivez vos ventes de billets MoMo et homologuez vos tirages papier BCDA."}
-            {role === "painter" && "Gérez votre galerie, certifiez vos toiles de l'École de Poto-Poto et suivez vos ventes d'art."}
-            {(role === "bcda_agent" || role === "admin") && "Supervisez la collecte nationale, le monitoring H24 des radios/TV et la répartition des redevances."}
+          <p className="text-xs text-slate-400">
+            Gérez vos distributions DSPs, vos droits BCDA, vos passages radio/TV et vos concerts depuis un hub unique.
           </p>
         </div>
 
-        {/* Badge Portefeuille Rapide */}
-        <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-right min-w-[200px]">
-          <span className="text-[10px] text-slate-400 block font-semibold">Solde Disponible (MoMo / Airtel) :</span>
-          <p className="text-2xl font-black text-emerald-400 mt-1">
-            {(user.wallet_balance_fcfa || 0).toLocaleString()} <span className="text-xs font-normal">FCFA</span>
-          </p>
-          <Link
-            href="/wallet"
-            className="inline-flex items-center space-x-1 text-[11px] text-congo-yellow hover:underline mt-2 font-bold"
+        {/* Bloc Portefeuille Express */}
+        <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl flex items-center space-x-4 w-full md:w-auto shadow-inner">
+          <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-congo-yellow border border-amber-500/30 flex items-center justify-center text-xl">
+            💰
+          </div>
+          <div>
+            <span className="text-[10px] text-slate-400 uppercase font-mono block">Solde Disponible MoMo</span>
+            <strong className="text-xl sm:text-2xl font-black text-white">
+              {(walletSummary?.balance_fcfa || user.wallet_balance_fcfa || 0).toLocaleString('fr-FR')} <span className="text-congo-yellow text-sm">FCFA</span>
+            </strong>
+          </div>
+          <button
+            onClick={() => setIsWithdrawModalOpen(true)}
+            className="px-4 py-2 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs transition shadow-lg flex-shrink-0"
           >
-            <span>Retirer des Fonds</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
+            Retirer 📲
+          </button>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 2. TABLEAU DE BORD : ARTISTE MUSICIEN (Ex: Prince Nzassi) */}
-      {/* ========================================================================= */}
-      {role === "artist" && (
-        <div className="space-y-8">
-          {/* Cartes Métriques */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Passages Radios & TV Congo</span>
-                <Radio className="w-4 h-4 text-sky-400" />
-              </div>
-              <p className="text-3xl font-black text-white mt-2">{artistStats?.total_airplay_count || 18}</p>
-              <span className="text-[11px] text-emerald-400">Télé Congo, DRTV, Top Congo FM</span>
-            </div>
+      {withdrawNotification && (
+        <div className="p-4 bg-emerald-950/80 border border-emerald-500 rounded-2xl text-emerald-200 text-xs flex items-center justify-between shadow-2xl">
+          <span>{withdrawNotification}</span>
+          <button onClick={() => setWithdrawNotification(null)} className="text-emerald-400 hover:text-white">✕</button>
+        </div>
+      )}
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Redevances BCDA Estimées</span>
-                <DollarSign className="w-4 h-4 text-congo-yellow" />
-              </div>
-              <p className="text-3xl font-black text-congo-yellow mt-2">
-                {(artistStats?.total_estimated_royalties_fcfa || 28500).toLocaleString()} FCFA
-              </p>
-              <span className="text-[11px] text-slate-500">Collectées via monitoring & vignettes</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Chansons & Clips Certifiés</span>
-                <ShieldCheck className="w-4 h-4 text-congo-green" />
-              </div>
-              <p className="text-3xl font-black text-white mt-2">3</p>
-              <span className="text-[11px] text-slate-500">Avec codes ISWC & ISRC BCDA</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Streams DSPs (Spotify/Apple)</span>
-                <TrendingUp className="w-4 h-4 text-purple-400" />
-              </div>
-              <p className="text-3xl font-black text-purple-400 mt-2">142 800</p>
-              <span className="text-[11px] text-slate-500">SonoSuite Distribution</span>
-            </div>
+      {/* 2. LES 4 GRANDS PILIERS DE L'ARTISTE (CLARIFIÉS & NON REDONDANTS) */}
+      {(role === "artist" || role === "admin") && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-black text-white flex items-center space-x-2">
+              <Sparkles className="w-5 h-5 text-congo-yellow" />
+              <span>Vos 4 Pôles d'Activités</span>
+            </h2>
+            <span className="text-xs text-slate-400">Cliquez pour accéder directement au pôle dédié</span>
           </div>
 
-          {/* Raccourcis d'action rapide vers les sous-pages dédiées */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* Pôle 1 : Distribution DSPs */}
             <Link
-              href="/distribution/nouveau"
-              className="p-5 bg-gradient-to-br from-slate-900 to-emerald-950/40 border border-emerald-800/60 rounded-3xl shadow-xl hover:border-emerald-500 transition group flex flex-col justify-between"
+              href="/distribution"
+              className="p-5 bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-3xl space-y-3 transition shadow-xl group"
             >
+              <div className="flex justify-between items-start">
+                <span className="p-2.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition">
+                  <Music className="w-5 h-5" />
+                </span>
+                <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-800">
+                  DDEX ERN 4.3
+                </span>
+              </div>
               <div>
-                <Music className="w-8 h-8 text-congo-green mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-base font-bold text-white">Distribuer une Chanson</h3>
-                <p className="text-xs text-slate-400 mt-1">Envoyez votre titre sur Spotify, Apple Music, TikTok, Boomplay et YouTube.</p>
+                <strong className="text-sm font-bold text-white block group-hover:text-emerald-400 transition">
+                  1. Distribution DSPs
+                </strong>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Livraison vers Spotify, Apple, Boomplay, TikTok et attribution ISRC/UPC.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-emerald-400 font-semibold">
+                <span>Gérer mes sorties</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
               </div>
             </Link>
 
+            {/* Pôle 2 : Droit d'Auteur BCDA */}
+            <Link
+              href="/bcda"
+              className="p-5 bg-slate-900 border border-slate-800 hover:border-congo-yellow/50 rounded-3xl space-y-3 transition shadow-xl group"
+            >
+              <div className="flex justify-between items-start">
+                <span className="p-2.5 rounded-2xl bg-amber-500/10 text-congo-yellow border border-amber-500/20 group-hover:scale-110 transition">
+                  <ShieldCheck className="w-5 h-5" />
+                </span>
+                <span className="text-[10px] font-mono text-congo-yellow font-bold bg-amber-950/50 px-2 py-0.5 rounded-full border border-amber-800">
+                  ISWC Officiel
+                </span>
+              </div>
+              <div>
+                <strong className="text-sm font-bold text-white block group-hover:text-congo-yellow transition">
+                  2. Droit d'Auteur BCDA
+                </strong>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Dépôt d'œuvres (8 étapes), répartition des splits à 100% et certificats nationaux.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-congo-yellow font-semibold">
+                <span>Mon Répertoire BCDA</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+              </div>
+            </Link>
+
+            {/* Pôle 3 : Moyo Publishing 360° */}
+            <Link
+              href="/publishing"
+              className="p-5 bg-slate-900 border border-slate-800 hover:border-indigo-500/50 rounded-3xl space-y-3 transition shadow-xl group"
+            >
+              <div className="flex justify-between items-start">
+                <span className="p-2.5 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 group-hover:scale-110 transition">
+                  <Globe className="w-5 h-5" />
+                </span>
+                <span className="text-[10px] font-mono text-indigo-400 font-bold bg-indigo-950/50 px-2 py-0.5 rounded-full border border-indigo-800">
+                  The MLC / CISAC
+                </span>
+              </div>
+              <div>
+                <strong className="text-sm font-bold text-white block group-hover:text-indigo-400 transition">
+                  3. Moyo Publishing (360°)
+                </strong>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Récupérez les droits d'auteur mondiaux si vous distribuez sur DistroKid ou TuneCore.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-indigo-400 font-semibold">
+                <span>Rattacher un ISRC</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+              </div>
+            </Link>
+
+            {/* Pôle 4 : Airplay & Monitoring IA */}
+            <Link
+              href="/monitoring"
+              className="p-5 bg-slate-900 border border-slate-800 hover:border-sky-500/50 rounded-3xl space-y-3 transition shadow-xl group"
+            >
+              <div className="flex justify-between items-start">
+                <span className="p-2.5 rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 group-hover:scale-110 transition">
+                  <Radio className="w-5 h-5" />
+                </span>
+                <span className="text-[10px] font-mono text-sky-400 font-bold bg-sky-950/50 px-2 py-0.5 rounded-full border border-sky-800">
+                  IA 24/7
+                </span>
+              </div>
+              <div>
+                <strong className="text-sm font-bold text-white block group-hover:text-sky-400 transition">
+                  4. Airplay Radios & TV
+                </strong>
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                  Détections acoustiques instantanées sur Télé Congo, DRTV et les radios FM.
+                </p>
+              </div>
+              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-sky-400 font-semibold">
+                <span>Voir les détections</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition" />
+              </div>
+            </Link>
+
+          </div>
+        </div>
+      )}
+
+      {/* 3. VUE RÉCAPITULATIVE DES PERFORMANCES & ACTIONS RAPIDES */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Colonne Gauche : Raccourcis d'actions Pro */}
+        <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4 shadow-xl">
+          <h3 className="text-sm font-black text-white flex items-center space-x-2">
+            <Zap className="w-4 h-4 text-congo-yellow" />
+            <span>Actions Rapides</span>
+          </h3>
+
+          <div className="space-y-2.5 text-xs font-bold">
             <Link
               href="/bcda/deposer"
-              className="p-5 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group flex flex-col justify-between"
+              className="w-full p-3 bg-congo-green hover:bg-emerald-600 text-white rounded-2xl flex items-center justify-between transition shadow-md"
             >
-              <div>
-                <ShieldCheck className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-base font-bold text-white">Déposer au BCDA</h3>
-                <p className="text-xs text-slate-400 mt-1">Enregistrez vos paroles, mélodie, master et clip pour vos redevances.</p>
+              <div className="flex items-center space-x-2">
+                <PlusCircle className="w-4 h-4" />
+                <span>Déposer une Œuvre BCDA (8 Étapes)</span>
               </div>
+              <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
-              href="/monitoring"
-              className="p-5 bg-gradient-to-br from-slate-900 to-sky-950/40 border border-sky-800/60 rounded-3xl shadow-xl hover:border-sky-400 transition group flex flex-col justify-between"
+              href="/publishing"
+              className="w-full p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl flex items-center justify-between transition border border-slate-700"
             >
-              <div>
-                <Radio className="w-8 h-8 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-base font-bold text-white">Direct Radios/TV</h3>
-                <p className="text-xs text-slate-400 mt-1">Surveillez vos détections IA sur Télé Congo, DRTV et Top Congo FM.</p>
+              <div className="flex items-center space-x-2">
+                <Globe className="w-4 h-4 text-indigo-400" />
+                <span>Importer un ISRC DistroKid</span>
               </div>
+              <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
-              href="/services-360"
-              className="p-5 bg-gradient-to-br from-slate-900 to-purple-950/40 border border-purple-800/60 rounded-3xl shadow-xl hover:border-purple-400 transition group flex flex-col justify-between"
+              href="/billetterie/mes-evenements"
+              className="w-full p-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-2xl flex items-center justify-between transition border border-slate-700"
             >
-              <div>
-                <Sparkles className="w-8 h-8 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
-                <h3 className="text-base font-bold text-white">Services & Packs 360°</h3>
-                <p className="text-xs text-slate-400 mt-1">Mastering, tournage de clip 4K, promo TikTok Congo et relations presse.</p>
-              </div>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* 3. TABLEAU DE BORD : PROMOTEUR DE CONCERTS (Ex: Brazza Live Prod) */}
-      {/* ========================================================================= */}
-      {role === "organizer" && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Événements Créés</span>
+              <div className="flex items-center space-x-2">
                 <Ticket className="w-4 h-4 text-congo-red" />
+                <span>Créer un Concert / Billetterie</span>
               </div>
-              <p className="text-3xl font-black text-white mt-2">{events.length || 1}</p>
-              <span className="text-[11px] text-emerald-400">Billetterie ouverte</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Billets MoMo Vendus</span>
-                <Users className="w-4 h-4 text-sky-400" />
-              </div>
-              <p className="text-3xl font-black text-sky-400 mt-2">123</p>
-              <span className="text-[11px] text-slate-500">Scannables par QR Code</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Recettes Billetterie</span>
-                <DollarSign className="w-4 h-4 text-congo-yellow" />
-              </div>
-              <p className="text-3xl font-black text-congo-yellow mt-2">615 000 FCFA</p>
-              <span className="text-[11px] text-slate-500">100% sécurisé</span>
-            </div>
-
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Tirages Papier Homologués BCDA</span>
-                <ShieldCheck className="w-4 h-4 text-purple-400" />
-              </div>
-              <p className="text-3xl font-black text-purple-400 mt-2">1 Lot</p>
-              <span className="text-[11px] text-purple-300">Canal A (Guichets)</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              href="/billetterie/creer"
-              className="p-5 bg-gradient-to-br from-slate-900 to-red-950/40 border border-red-800/60 rounded-3xl shadow-xl hover:border-congo-red transition group"
-            >
-              <PlusCircle className="w-8 h-8 text-congo-red mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Créer un Nouvel Événement</h3>
-              <p className="text-xs text-slate-400 mt-1">Configurez le prix, la capacité, la salle et les splits artistes automatisés.</p>
+              <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
-              href="/billetterie/scan"
-              className="p-5 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group"
+              href="/bcda/guide"
+              className="w-full p-3 bg-slate-950 hover:bg-slate-900 text-slate-300 rounded-2xl flex items-center justify-between transition border border-slate-800"
             >
-              <ScanLine className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Scanner les Billets aux Portes</h3>
-              <p className="text-xs text-slate-400 mt-1">Validez les QR codes des spectateurs à l'entrée avec votre smartphone.</p>
-            </Link>
-
-            <Link
-              href="/bcda"
-              className="p-5 bg-gradient-to-br from-slate-900 to-purple-950/40 border border-purple-800/60 rounded-3xl shadow-xl hover:border-purple-500 transition group"
-            >
-              <Ticket className="w-8 h-8 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Billetterie Papier & Rapprochement BCDA</h3>
-              <p className="text-xs text-slate-400 mt-1">Générez vos timbres d'imprimerie et régularisez les invendus après le spectacle.</p>
+              <div className="flex items-center space-x-2">
+                <FileText className="w-4 h-4 text-congo-yellow" />
+                <span>Guide & FAQ SACEM/BCDA</span>
+              </div>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
-      )}
 
-      {/* ========================================================================= */}
-      {/* 4. TABLEAU DE BORD : MAÎTRE PEINTRE (Ex: Maître Mouanga - Poto-Poto) */}
-      {/* ========================================================================= */}
-      {role === "painter" && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Toiles & Sculptures Exposées</span>
-                <Palette className="w-4 h-4 text-sky-400" />
-              </div>
-              <p className="text-3xl font-black text-white mt-2">{artworks.length || 4}</p>
-              <span className="text-[11px] text-emerald-400">École de Peinture de Poto-Poto</span>
+        {/* Colonne Droite : Statistiques d'Airplay & Droit d'Auteur */}
+        <div className="lg:col-span-2 p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4 shadow-xl">
+          <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+            <h3 className="text-sm font-black text-white flex items-center space-x-2">
+              <Radio className="w-4 h-4 text-sky-400" />
+              <span>Dernières Détections Médias & Airplay 🇨🇬</span>
+            </h3>
+            <Link href="/monitoring" className="text-xs text-sky-400 hover:underline">
+              Voir tout le monitoring →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800">
+              <span className="text-slate-500 block text-[10px]">Total Passages TV/Radio</span>
+              <strong className="text-lg font-black text-white">
+                {artistStats?.total_plays || 18} diffusions
+              </strong>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Certificats d'Authenticité EPP</span>
-                <ShieldCheck className="w-4 h-4 text-congo-green" />
-              </div>
-              <p className="text-3xl font-black text-congo-green mt-2">4</p>
-              <span className="text-[11px] text-slate-500">Inviolables avec QR Code</span>
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800">
+              <span className="text-slate-500 block text-[10px]">Stations Actives</span>
+              <strong className="text-lg font-black text-sky-400">
+                {artistStats?.stations_count || 4} chaînes
+              </strong>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Total Ventes d'Art</span>
-                <DollarSign className="w-4 h-4 text-congo-yellow" />
-              </div>
-              <p className="text-3xl font-black text-congo-yellow mt-2">450 000 FCFA</p>
-              <span className="text-[11px] text-slate-500">Payé par Mobile Money</span>
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800">
+              <span className="text-slate-500 block text-[10px]">Droits d'Auteur BCDA</span>
+              <strong className="text-lg font-black text-congo-yellow">
+                {(artistStats?.estimated_royalties_fcfa || 45000).toLocaleString('fr-FR')} FCFA
+              </strong>
+            </div>
+
+            <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800">
+              <span className="text-slate-500 block text-[10px]">Droits Publishing (360°)</span>
+              <strong className="text-lg font-black text-emerald-400">
+                {(pubStats?.grand_total_fcfa || 125000).toLocaleString('fr-FR')} FCFA
+              </strong>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Link
-              href="/galerie/ajouter"
-              className="p-6 bg-gradient-to-br from-slate-900 to-sky-950/40 border border-sky-800/60 rounded-3xl shadow-xl hover:border-sky-400 transition group"
-            >
-              <PlusCircle className="w-8 h-8 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-lg font-bold text-white">Ajouter & Certifier une Toile</h3>
-              <p className="text-xs text-slate-400 mt-1">Téléversez votre œuvre et générez le certificat officiel d'authenticité EPP.</p>
-            </Link>
-
-            <Link
-              href="/galerie"
-              className="p-6 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group"
-            >
-              <Palette className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-lg font-bold text-white">Gérer ma Galerie & Certificats</h3>
-              <p className="text-xs text-slate-400 mt-1">Consultez vos œuvres en vente et imprimez les certificats QR pour les acheteurs.</p>
-            </Link>
+          <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span className="text-slate-300">
+                Dernière détection : <strong>"Rumba du Fleuve"</strong> sur <strong>Télé Congo HD</strong> (100% match)
+              </span>
+            </div>
+            <span className="text-[10px] text-slate-500 font-mono">Il y a 12 min</span>
           </div>
         </div>
-      )}
 
-      {/* ========================================================================= */}
-      {/* 5. TABLEAU DE BORD : AGENT / INSPECTEUR BCDA & ADMIN */}
-      {/* ========================================================================= */}
-      {(role === "bcda_agent" || role === "admin") && (
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Œuvres & Clips Répertoriés</span>
-                <Music className="w-4 h-4 text-congo-green" />
-              </div>
-              <p className="text-3xl font-black text-white mt-2">{bcdaStats?.total_works_registered || 3}</p>
-              <span className="text-[11px] text-slate-500">ISWC, ISRC & Audiovisuel</span>
+      </div>
+
+      {/* MODAL RETRAIT MOBILE MONEY */}
+      {isWithdrawModalOpen && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl text-white">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-black text-white">Retrait Instantané Mobile Money 📲</h3>
+              <button onClick={() => setIsWithdrawModalOpen(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Taxis 100-100 & Bars Licenciés</span>
-                <Car className="w-4 h-4 text-sky-400" />
+            <form onSubmit={handleWithdrawSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="text-slate-300 font-bold block mb-1.5">Opérateur Mobile *</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setWithdrawOperator("MTN")}
+                    className={`py-2.5 rounded-xl font-bold border transition ${
+                      withdrawOperator === "MTN" ? "bg-amber-500/20 border-congo-yellow text-congo-yellow" : "bg-slate-950 border-slate-800 text-slate-400"
+                    }`}
+                  >
+                    MTN Mobile Money 🟡
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setWithdrawOperator("Airtel")}
+                    className={`py-2.5 rounded-xl font-bold border transition ${
+                      withdrawOperator === "Airtel" ? "bg-rose-500/20 border-congo-red text-congo-red" : "bg-slate-950 border-slate-800 text-slate-400"
+                    }`}
+                  >
+                    Airtel Money 🔴
+                  </button>
+                </div>
               </div>
-              <p className="text-3xl font-black text-sky-400 mt-2">{bcdaStats?.total_licensed_venues || 6}</p>
-              <span className="text-[11px] text-slate-500">Vignettes pare-brise actives</span>
-            </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Collecte Nationale Mensuelle</span>
-                <DollarSign className="w-4 h-4 text-congo-yellow" />
+              <div>
+                <label className="text-slate-300 font-bold block mb-1.5">Numéro de Téléphone MoMo *</label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="+242068001122"
+                  value={withdrawPhone}
+                  onChange={(e) => setWithdrawPhone(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-mono"
+                />
               </div>
-              <p className="text-3xl font-black text-congo-yellow mt-2">
-                {(bcdaStats?.total_collected_fcfa || 150000).toLocaleString()} FCFA
-              </p>
-              <span className="text-[11px] text-slate-500">Vignettes + Monitoring</span>
-            </div>
 
-            <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-lg">
-              <div className="flex justify-between items-center text-slate-400 text-xs">
-                <span>Reversé sur Wallets Artistes</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <div>
+                <label className="text-slate-300 font-bold block mb-1.5">Montant à Retirer (FCFA) *</label>
+                <input
+                  type="number"
+                  required
+                  min={500}
+                  placeholder="Ex: 50000"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white font-black text-base text-congo-yellow"
+                />
               </div>
-              <p className="text-3xl font-black text-emerald-400 mt-2">
-                {(bcdaStats?.total_paid_out_to_artists_fcfa || 0).toLocaleString()} FCFA
-              </p>
-              <span className="text-[11px] text-emerald-400">100% payé sans intermédiaire</span>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              href="/bcda"
-              className="p-5 bg-gradient-to-br from-slate-900 to-amber-950/40 border border-amber-800/60 rounded-3xl shadow-xl hover:border-congo-yellow transition group"
-            >
-              <ShieldCheck className="w-8 h-8 text-congo-yellow mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Lancer une Répartition MoMo</h3>
-              <p className="text-xs text-slate-400 mt-1">Ventilez les redevances aux 5 ayants droit et créditez instantanément leurs portefeuilles.</p>
-            </Link>
-
-            <Link
-              href="/monitoring"
-              className="p-5 bg-gradient-to-br from-slate-900 to-sky-950/40 border border-sky-800/60 rounded-3xl shadow-xl hover:border-sky-400 transition group"
-            >
-              <Radio className="w-8 h-8 text-sky-400 mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Supervision IA Radios / TV</h3>
-              <p className="text-xs text-slate-400 mt-1">Consultez les détections H24 sur Télé Congo, DRTV, Top Congo FM et les rapports officiels.</p>
-            </Link>
-
-            <Link
-              href="/bcda"
-              className="p-5 bg-gradient-to-br from-slate-900 to-emerald-950/40 border border-emerald-800/60 rounded-3xl shadow-xl hover:border-congo-green transition group"
-            >
-              <Car className="w-8 h-8 text-congo-green mb-3 group-hover:scale-110 transition-transform" />
-              <h3 className="text-base font-bold text-white">Contrôle Vignettes Taxis & Bars</h3>
-              <p className="text-xs text-slate-400 mt-1">Recherchez une plaque d'immatriculation et vérifiez l'authenticité des QR codes de contrôle.</p>
-            </Link>
+              <div className="flex justify-end space-x-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsWithdrawModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-400 rounded-xl"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={isWithdrawing}
+                  className="px-6 py-2 bg-congo-yellow hover:bg-amber-400 text-slate-950 font-black rounded-xl"
+                >
+                  {isWithdrawing ? "Paiement en cours..." : "Valider le Retrait 💸"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
