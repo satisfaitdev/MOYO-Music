@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { query } from '../../database/db';
 import { authenticateToken, AuthRequest } from '../../modules/auth/auth.middleware';
+import { getNextISWC, getNextISRC } from '../../database/sequences';
 
 const router = Router();
 
@@ -125,7 +126,7 @@ router.post('/import', authenticateToken, async (req: AuthRequest, res: Response
     const finalTitle = (track_title || 'Titre Importé').trim();
     const finalArtist = (artist_name || req.user?.artist_name || req.user?.full_name || 'Artiste').trim();
     const finalDistributor = original_distributor || 'DistroKid';
-    const finalIsrc = cleanedIsrc || `US-${finalDistributor.substring(0, 3).toUpperCase()}-26-${Math.floor(10000 + Math.random() * 90000)}`;
+    const finalIsrc = cleanedIsrc || await getNextISRC();
 
     // Vérifier si l'ISRC est déjà administré
     const existing = await query(
@@ -139,19 +140,16 @@ router.post('/import', authenticateToken, async (req: AuthRequest, res: Response
       });
     }
 
-    // Attribution automatique d'un code ISWC mondial
-    const random1 = Math.floor(100 + Math.random() * 899);
-    const random2 = Math.floor(100 + Math.random() * 899);
-    const randomCheck = Math.floor(1 + Math.random() * 9);
-    const generatedIswc = `T-304.${random1}.${random2}-${randomCheck}`;
+    // Attribution automatique d'un code ISWC mondial officiel
+    const generatedIswc = await getNextISWC();
 
-    // Simulation de détection initiale de streams et royalties bloquées
-    const initialStreams = Math.floor(25000 + Math.random() * 150000);
-    const initialMechanical = Math.round((initialStreams * 0.15 * 2.5) * 100) / 100; // Estimation FCFA
-    const initialPerformance = Math.round((initialStreams * 0.08 * 1.8) * 100) / 100;
-    const initialContentId = Math.round((initialStreams * 0.05 * 1.2) * 100) / 100;
-    const initialNeighboring = Math.round((initialStreams * 0.04 * 1.5) * 100) / 100;
-    const grandTotal = initialMechanical + initialPerformance + initialContentId + initialNeighboring;
+    // Initialisation exacte et réelle sans données fictives
+    const initialStreams = 0;
+    const initialMechanical = 0;
+    const initialPerformance = 0;
+    const initialContentId = 0;
+    const initialNeighboring = 0;
+    const grandTotal = 0;
 
     const writersList = writers || [
       { name: finalArtist, role: "Auteur & Compositeur", split_percentage: 100 }

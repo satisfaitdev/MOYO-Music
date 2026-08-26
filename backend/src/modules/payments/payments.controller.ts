@@ -15,7 +15,7 @@ router.post('/initiate', async (req: Request, res: Response) => {
     }
 
     const amount = parseFloat(amount_fcfa);
-    const idempotencyKey = `dep_moyo_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+    const idempotencyKey = `dep_moyo_${Date.now()}`;
 
     // Appel direct à l'orchestrateur KibangouPay
     const kbpResult = await kibangouPay.createDeposit({

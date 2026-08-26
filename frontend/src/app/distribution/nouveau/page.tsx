@@ -99,8 +99,8 @@ export default function NouvelleDistributionPage() {
       });
 
       setSuccessData({
-        upc: res.release?.upc_code || "60747498" + Math.floor(1000 + Math.random() * 9000),
-        isrc: res.tracks?.[0]?.isrc_code || "CG-B01-26-" + Math.floor(10000 + Math.random() * 90000),
+        upc: res.release?.upc_code || "607474900101",
+        isrc: res.tracks?.[0]?.isrc_code || "CG-B01-26-10001",
         title: title,
         amount: priceMap[releaseType],
       });

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../../database/db';
 import { authenticateToken, requireRole, AuthRequest } from '../auth/auth.middleware';
+import { getNextArtCertificate } from '../../database/sequences';
 
 const router = Router();
 
@@ -115,7 +116,7 @@ router.post('/artworks/create', authenticateToken, requireRole(['painter']), asy
       return res.status(400).json({ error: 'Titre, catégorie, prix en FCFA et image sont obligatoires.' });
     }
 
-    const certNumber = `CERT-EPP-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`;
+    const certNumber = await getNextArtCertificate();
 
     const result = await query(`
       INSERT INTO artworks (

@@ -55,7 +55,7 @@ router.post('/withdraw', authenticateToken, async (req: AuthRequest, res: Respon
     }
 
     const beneficiary = user.artist_name || user.full_name || 'Artiste Moyo Culture';
-    const idempotencyKey = `wd_moyo_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+    const idempotencyKey = `wd_moyo_${Date.now()}`;
 
     // 2. Déclencher le Payout Mobile Money réel via KibangouPay
     const { kibangouPay } = await import('../payments/kibangoupay.service');

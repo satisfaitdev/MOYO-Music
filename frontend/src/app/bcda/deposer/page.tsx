@@ -358,10 +358,10 @@ export default function MusicStartBCDAProtectionPage() {
         title: workTitle,
         subtitle: workSubtitle,
         genre: workStyle,
-        iswc_code: "T-" + Math.floor(100 + Math.random() * 900) + "." + Math.floor(100 + Math.random() * 900) + "." + Math.floor(100 + Math.random() * 900) + "-C",
-        isrc_code: isAlreadyDistributed && existingIsrc ? existingIsrc : ("CG-B01-26-" + Math.floor(10000 + Math.random() * 90000)),
-        bcda_code: "BCDA-CG-2026-" + Math.floor(10000 + Math.random() * 90000),
-        fingerprint_hash: audioFingerprintData?.hash || "SHA256:7B89A0C32E4",
+        iswc_code: res.iswc_code || "T-304.100.001-1",
+        isrc_code: isAlreadyDistributed && existingIsrc ? existingIsrc : (res.work?.isrc_code || "CG-B01-26-10001"),
+        bcda_code: res.registration_number || res.work?.registration_number || "BCDA-CG-2026-00101",
+        fingerprint_hash: audioFingerprintData?.hash || (res.work?.audio_fingerprint_hash || "SHA256:AUTHENTIC"),
       });
 
       setStep(8);

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { query } from '../../database/db';
 import { authenticateToken, requireRole, AuthRequest } from '../auth/auth.middleware';
+import { getNextISRC, getNextISWC, getNextBcdaRegistration } from '../../database/sequences';
 
 const router = Router();
 
@@ -263,9 +264,9 @@ router.post('/works/register', authenticateToken, async (req: AuthRequest, res: 
       });
     }
 
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const regNumber = `BCDA-CG-2026-${randomNum}`;
-    const generatedIswc = `T-304.${Math.floor(100 + Math.random() * 899)}.${Math.floor(100 + Math.random() * 899)}-${Math.floor(1 + Math.random() * 9)}`;
+    const regNumber = await getNextBcdaRegistration();
+    const generatedIswc = await getNextISWC();
+    const finalIsrc = isrc_code || await getNextISRC();
 
     // Assurer que la colonne audio_fingerprint_hash existe
     await query('ALTER TABLE bcda_works_registry ADD COLUMN IF NOT EXISTS audio_fingerprint_hash TEXT');
@@ -279,7 +280,7 @@ router.post('/works/register', authenticateToken, async (req: AuthRequest, res: 
     `, [
       finalTitle,
       genre || 'Rumba Congolaise',
-      isrc_code || `CG-B01-26-0${randomNum}`,
+      finalIsrc,
       generatedIswc,
       regNumber,
       JSON.stringify(finalAuthors),
@@ -426,12 +427,14 @@ router.post('/licenses/pay', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Le nom de l\'établissement/véhicule et le numéro MoMo sont obligatoires.' });
     }
 
-    const randomId = Math.floor(100 + Math.random() * 900);
+    const licSeqRes = await query(`SELECT nextval('bcda_reg_seq') as seq`);
+    const licSeqNum = String(licSeqRes.rows[0].seq).padStart(4, '0');
     const isTransport = (venue_type || '').includes('Taxi') || (venue_type || '').includes('Bus') || (venue_type || '').includes('Bateau');
     const prefix = isTransport ? 'VIG' : 'LIC';
     const cityCode = (city || 'Brazzaville').toLowerCase().includes('pointe') ? 'PNR' : 'BZV';
-    const licenseCode = `${prefix}-BCDA-2026-${cityCode}-${randomId}`;
-    const qrHash = `QR-BCDA-AUTH-${Date.now()}-${randomId}`;
+    const year = new Date().getFullYear();
+    const licenseCode = `${prefix}-BCDA-${year}-${cityCode}-${licSeqNum}`;
+    const qrHash = `QR-BCDA-AUTH-${year}-${licSeqNum}`;
 
     const fee = parseFloat(monthly_fee_fcfa || 25000);
 
@@ -527,7 +530,7 @@ router.post('/royalties/distribute', authenticateToken, requireRole(['bcda_agent
       for (const m of members) {
         const splitPct = m.split_percentage || m.tv_split_percentage || 20;
         const payout = (amount * splitPct) / 100;
-        const txId = `BCDA-WAL-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+        const txId = `BCDA-WAL-${Date.now()}-${group.key.slice(0, 3).toUpperCase()}`;
 
         // Vérifier si l'artiste/créateur a un compte utilisateur existant sur la plateforme
         const userSearch = await query(`

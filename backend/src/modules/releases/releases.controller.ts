@@ -2,25 +2,10 @@ import { Router, Response } from 'express';
 import { query } from '../../database/db';
 import { authenticateToken, requireRole, AuthRequest } from '../auth/auth.middleware';
 import { sonosuite } from './sonosuite.service';
+import { getNextISRC, getNextUPC } from '../../database/sequences';
 import crypto from 'crypto';
 
 const router = Router();
-
-// Générateur automatique de code ISRC Congolais (Format : CG-XXX-AA-NNNNN)
-function generateCongoleseISRC(): string {
-  const country = 'CG';
-  const registrant = 'B01'; // Registrant code Congo-Brazza
-  const year = new Date().getFullYear().toString().slice(-2);
-  const designation = Math.floor(10000 + Math.random() * 90000).toString();
-  return `${country}-${registrant}-${year}-${designation}`;
-}
-
-// Générateur automatique de code UPC
-function generateCongoleseUPC(): string {
-  const timestamp = Date.now().toString().slice(-6);
-  const random = Math.floor(1000 + Math.random() * 9000).toString();
-  return `UPC-CG-${timestamp}${random}`;
-}
 
 // LISTE DE TOUTES LES SORTIES PUBLIQUES / DISTRIBUÉES (Accessible à tout le monde)
 router.get('/', async (req, res: Response) => {
@@ -81,7 +66,7 @@ router.post('/create', authenticateToken, requireRole(['artist']), async (req: A
       return res.status(400).json({ error: 'Vous devez ajouter au moins une piste audio.' });
     }
 
-    const upcCode = generateCongoleseUPC();
+    const upcCode = await getNextUPC();
     const feeFcfa = release_type === 'single' ? 5000.00 : (release_type === 'ep' ? 10000.00 : 15000.00);
 
     // 1. Insertion de la sortie
@@ -113,7 +98,7 @@ router.post('/create', authenticateToken, requireRole(['artist']), async (req: A
     const insertedTracks = [];
     for (let i = 0; i < tracks.length; i++) {
       const t = tracks[i];
-      const isrc = generateCongoleseISRC();
+      const isrc = t.isrc_code || await getNextISRC();
       const trackRes = await query(`
         INSERT INTO tracks (
           release_id, track_number, title, featured_artists, isrc_code,
@@ -220,7 +205,7 @@ router.get('/:id/ddex-xml', async (req, res: Response) => {
     const tracksList = (r.tracks || []).map((t: any) => ({
       position: t.track_number,
       title: t.title,
-      isrc: t.isrc_code || `CG-B01-26-${Math.floor(10000 + Math.random() * 90000)}`,
+      isrc: t.isrc_code || `CG-B01-26-${String(t.track_number).padStart(5, '0')}`,
       duration_iso: `PT${Math.floor((t.duration_seconds || 180) / 60)}M${(t.duration_seconds || 180) % 60}S`,
       duration_seconds: t.duration_seconds || 180,
       audio_filename: `track_${t.track_number}.wav`,

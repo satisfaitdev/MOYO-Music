@@ -158,10 +158,10 @@ export default function DistributionPage() {
       });
 
       setSuccessData({
-        upc: res.release?.upc_code || "6074749" + Math.floor(10000 + Math.random() * 90000),
-        isrc: res.tracks?.[0]?.isrc_code || "CG-B01-26-" + Math.floor(10000 + Math.random() * 90000),
+        upc: res.release?.upc_code || "607474900101",
+        isrc: res.tracks?.[0]?.isrc_code || "CG-B01-26-10001",
         title: title,
-        sonosuiteStatus: res.sonosuite?.status || "TRANSMITTED_TO_DSPS",
+        sonosuiteStatus: res.sonosuite?.status || "QUEUED_FOR_QC",
         amount: priceMap[releaseType],
         phone: phoneNumber || user.phone_number,
       });
