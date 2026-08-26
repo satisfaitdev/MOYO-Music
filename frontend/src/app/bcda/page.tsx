@@ -464,7 +464,7 @@ export default function BcdaPortalPage() {
         </div>
       )}
 
-      {/* Navigation Onglets Unifiée BCDA & Publishing */}
+      {/* Navigation Onglets Unifiée BCDA */}
       <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
         <button
           onClick={() => setActiveTab("works")}
@@ -474,16 +474,6 @@ export default function BcdaPortalPage() {
         >
           <Music className="w-4 h-4" />
           <span>{isArtist && !isBcdaAgent ? `Mes Œuvres Déposées (${filteredWorks.length})` : `Répertoire National des Œuvres (${filteredWorks.length})`}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("publishing" as any)}
-          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center space-x-2 ${
-            activeTab === ("publishing" as any) ? "bg-indigo-600 text-white shadow-lg font-black" : "bg-slate-900 text-slate-400 hover:text-white"
-          }`}
-        >
-          <Globe className="w-4 h-4 text-indigo-400" />
-          <span>Import DistroKid / TuneCore (Droits Mondiaux The MLC)</span>
         </button>
 
         {isBcdaAgent && (

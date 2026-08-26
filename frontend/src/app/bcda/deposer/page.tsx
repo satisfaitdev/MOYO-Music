@@ -96,6 +96,10 @@ export default function MusicStartBCDAProtectionPage() {
   const [creationNature, setCreationNature] = useState<"new" | "existing">("new");
   const [workNature, setWorkNature] = useState<"chant" | "instrumental" | "texte">("chant");
   const [workStatus, setWorkStatus] = useState<"inedite" | "editee" | "demo">("inedite");
+  const [isAlreadyDistributed, setIsAlreadyDistributed] = useState(false);
+  const [externalDistributor, setExternalDistributor] = useState("DistroKid");
+  const [existingIsrc, setExistingIsrc] = useState("");
+  const [mandateGlobalPublishing, setMandateGlobalPublishing] = useState(true);
 
   // Étape 3 : Titre
   const [workTitle, setWorkTitle] = useState("");
@@ -330,6 +334,8 @@ export default function MusicStartBCDAProtectionPage() {
         bpm: bpmTempo,
         duration_seconds: audioDurationSeconds,
         audio_fingerprint_hash: audioFingerprintData?.hash || `SHA256:${Date.now().toString(16).toUpperCase()}89BC12`,
+        isrc_code: isAlreadyDistributed && existingIsrc ? existingIsrc : undefined,
+        original_distributor: isAlreadyDistributed ? externalDistributor : "Moyo Music",
         collaborators: collaborators,
         authors: collaborators.filter(c => c.role === 'author').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
         composers: collaborators.filter(c => c.role === 'composer' || c.role === 'beatmaker').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage })),
@@ -338,12 +344,22 @@ export default function MusicStartBCDAProtectionPage() {
         music_video_directors: collaborators.filter(c => c.role === 'clip_director').map(c => ({ name: c.name, phone: c.phone, split_percentage: c.splitPercentage }))
       });
 
+      // Si l'utilisateur a mandaté la collecte mondiale sur son ISRC existant
+      if (isAlreadyDistributed && existingIsrc && mandateGlobalPublishing) {
+        await publishingApi.importIsrc({
+          isrc_code: existingIsrc,
+          track_title: workTitle,
+          artist_name: user?.artist_name || user?.full_name || "Artiste",
+          original_distributor: externalDistributor
+        }).catch(console.error);
+      }
+
       setRegisteredResult(res.work || {
         title: workTitle,
         subtitle: workSubtitle,
         genre: workStyle,
         iswc_code: "T-" + Math.floor(100 + Math.random() * 900) + "." + Math.floor(100 + Math.random() * 900) + "." + Math.floor(100 + Math.random() * 900) + "-C",
-        isrc_code: "CG-B01-26-" + Math.floor(10000 + Math.random() * 90000),
+        isrc_code: isAlreadyDistributed && existingIsrc ? existingIsrc : ("CG-B01-26-" + Math.floor(10000 + Math.random() * 90000)),
         bcda_code: "BCDA-CG-2026-" + Math.floor(10000 + Math.random() * 90000),
         fingerprint_hash: audioFingerprintData?.hash || "SHA256:7B89A0C32E4",
       });
@@ -645,6 +661,84 @@ export default function MusicStartBCDAProtectionPage() {
                 <option value="editee">Éditée (Sous contrat d'édition avec un Label)</option>
                 <option value="demo">Démo Provisoire (Protection temporaire MusicStart BCDA)</option>
               </select>
+            </div>
+
+            {/* Déjà distribué sur DistroKid / Spotify ? */}
+            <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-4">
+              <label className="text-slate-200 font-bold block text-xs">
+                Ce morceau est-il déjà distribué sur les plateformes (DistroKid, TuneCore, CD Baby, Spotify) ?
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAlreadyDistributed(false)}
+                  className={`p-3.5 rounded-xl border text-left transition ${
+                    !isAlreadyDistributed
+                      ? "bg-congo-green/10 border-congo-green text-white font-bold"
+                      : "bg-slate-900 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <strong className="block text-xs text-white mb-0.5">🌱 Non, création inédite / maquette</strong>
+                  <span className="text-[11px] text-slate-400">Moyo générera un code ISRC national lors de la sortie.</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAlreadyDistributed(true)}
+                  className={`p-3.5 rounded-xl border text-left transition ${
+                    isAlreadyDistributed
+                      ? "bg-indigo-950/60 border-indigo-500 text-white font-bold"
+                      : "bg-slate-900 border-slate-800 text-slate-400"
+                  }`}
+                >
+                  <strong className="block text-xs text-white mb-0.5">📦 Oui, déjà sorti sur un distributeur</strong>
+                  <span className="text-[11px] text-slate-400">J'ai déjà un ISRC DistroKid / TuneCore existant.</span>
+                </button>
+              </div>
+
+              {isAlreadyDistributed && (
+                <div className="pt-2 space-y-3 animate-fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-slate-400 text-[11px] block mb-1">Distributeur utilisé :</label>
+                      <select
+                        value={externalDistributor}
+                        onChange={(e) => setExternalDistributor(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs"
+                      >
+                        <option value="DistroKid">DistroKid 📦</option>
+                        <option value="TuneCore">TuneCore 🎵</option>
+                        <option value="CD Baby">CD Baby 💿</option>
+                        <option value="Believe">Believe / Backstage 🏢</option>
+                        <option value="Autre">Autre Distributeur</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-slate-400 text-[11px] block mb-1">Votre Code ISRC existant :</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: QZ-DA4-24-00123"
+                        value={existingIsrc}
+                        onChange={(e) => setExistingIsrc(e.target.value)}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white font-mono text-xs focus:border-indigo-400"
+                      />
+                    </div>
+                  </div>
+
+                  <label className="flex items-start space-x-2 text-[11px] text-indigo-300 bg-indigo-950/30 p-3 rounded-xl border border-indigo-800/40 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={mandateGlobalPublishing}
+                      onChange={(e) => setMandateGlobalPublishing(e.target.checked)}
+                      className="mt-0.5 accent-indigo-500 rounded"
+                    />
+                    <span>
+                      <strong>Mandater Moyo & BCDA pour réclamer mes 15% à 20% de droits d'auteur mondiaux</strong> (The MLC aux USA, YouTube Content ID et passages TV/Radio) qu'aucun distributeur ne collecte pour moi.
+                    </span>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
